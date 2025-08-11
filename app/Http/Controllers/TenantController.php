@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Stancl\Tenancy\Database\Models\Domain;
 
 class TenantController extends Controller
 {
@@ -23,26 +24,25 @@ class TenantController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => 'required|string|unique:tenants,domain',
+            'domain' => 'required|string|unique:domains,domain',
         ]);
 
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name));
 
         $tenant = Tenant::create([
             'name' => $request->name,
-            'domain' => $request->domain,
             'database' => $databaseName,
             'is_active' => true,
         ]);
 
-        // Create database & run tenant migrations via stancl/tenancy
-        $tenant->createDatabase();
-        $tenant->makeCurrent();
-        Artisan::call('tenants:migrate', [
-            '--tenants' => [$tenant->id],
-            '--force' => true,
+        // Attach domain record required by stancl/tenancy
+        $tenant->domains()->create([
+            'domain' => $request->domain,
         ]);
-        $tenant->forgetCurrent();
+
+        // Trigger tenancy events to create DB & run migrations (via TenancyServiceProvider pipelines)
+        tenancy()->initialize($tenant);
+        tenancy()->end();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant created successfully!');
     }
@@ -61,10 +61,15 @@ class TenantController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => 'required|string|unique:tenants,domain,' . $tenant->id,
+            'domain' => 'required|string|unique:domains,domain,' . $tenant->id,
         ]);
 
-        $tenant->update($request->only(['name', 'domain']));
+        $tenant->update($request->only(['name']));
+
+        // Update domain value
+        $tenant->domains()->updateOrCreate([], [
+            'domain' => $request->domain,
+        ]);
 
         return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully!');
     }

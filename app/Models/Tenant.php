@@ -14,18 +14,12 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     use HasDatabase;
     use HasDomains;
 
-    protected $fillable = [
-        'name',
-        'domain',
-        'database',
-        'is_active',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
 
-    // Map your existing `database` column to tenancy's database name
     public function getTenantKeyName(): string
     {
         return 'id';
