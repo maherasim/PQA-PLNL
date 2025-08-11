@@ -28,7 +28,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('products.create');
+        return view('products.create'); // tenant middleware will switch connection based on ?tenant
     }
 
     public function store(Request $request)

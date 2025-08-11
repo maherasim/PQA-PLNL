@@ -14,10 +14,6 @@ Route::get('/', function () {
 // Tenant management routes (landlord)
 Route::resource('tenants', TenantController::class);
 
-// Product routes (tenant-specific)
-Route::middleware(['web'])->group(function () {
-    Route::resource('products', ProductController::class);
-});
 
 // Test route to verify multi-tenancy
 Route::get('/test-tenant/{tenantId}', function ($tenantId) {

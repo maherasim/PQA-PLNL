@@ -12,7 +12,7 @@
             <h1>Products</h1>
             <div>
                 <a href="{{ route('tenants.index') }}" class="btn btn-secondary me-2">Back to Tenants</a>
-                <a href="{{ route('products.create') }}?tenant={{ request()->query('tenant') }}" class="btn btn-primary">Create New Product</a>
+                <a href="{{ url('products/create?tenant=' . request()->query('tenant')) }}" class="btn btn-primary">Create New Product</a>
             </div>
         </div>
 
@@ -50,8 +50,8 @@
                                 <td>${{ number_format($product->price, 2) }}</td>
                                 <td>{{ $product->stock }}</td>
                                 <td>
-                                    <a href="{{ route('products.show', $product) }}?tenant={{ request()->query('tenant') }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('products.edit', $product) }}?tenant={{ request()->query('tenant') }}" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="{{ url('products/' . $product->id . '?tenant=' . request()->query('tenant')) }}" class="btn btn-sm btn-info">View</a>
+                                    <a href="{{ url('products/' . $product->id . '/edit?tenant=' . request()->query('tenant')) }}" class="btn btn-sm btn-warning">Edit</a>
                                     <form action="{{ url('products/' . $product->id . '?tenant=' . request()->query('tenant')) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
