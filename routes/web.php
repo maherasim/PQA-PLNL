@@ -15,7 +15,7 @@ Route::get('/', function () {
 Route::resource('tenants', TenantController::class);
 
 
-// Test route to verify multi-tenancy
+// Test route to verify multi-tenancy (central)
 Route::get('/test-tenant/{tenantId}', function ($tenantId) {
     $tenant = Tenant::find($tenantId);
     if (!$tenant) {

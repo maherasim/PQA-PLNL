@@ -1,5 +1,7 @@
 <?php
 
+<?php return; // Deprecated: replaced by stancl/tenancy InitializeTenancyByRequestData middleware
+
 namespace App\Http\Middleware;
 
 use Closure;

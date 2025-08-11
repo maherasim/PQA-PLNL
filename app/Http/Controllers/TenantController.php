@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 
 class TenantController extends Controller
@@ -29,7 +28,6 @@ class TenantController extends Controller
 
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name));
 
-        // Create tenant
         $tenant = Tenant::create([
             'name' => $request->name,
             'domain' => $request->domain,
@@ -37,11 +35,14 @@ class TenantController extends Controller
             'is_active' => true,
         ]);
 
-        // Create tenant database
-        DB::statement("CREATE DATABASE IF NOT EXISTS {$databaseName}");
-
-        // Run migrations for the new tenant
-        $this->migrateTenant($tenant);
+        // Create database & run tenant migrations via stancl/tenancy
+        $tenant->createDatabase();
+        $tenant->makeCurrent();
+        Artisan::call('tenants:migrate', [
+            '--tenants' => [$tenant->id],
+            '--force' => true,
+        ]);
+        $tenant->forgetCurrent();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant created successfully!');
     }
@@ -70,36 +71,7 @@ class TenantController extends Controller
 
     public function destroy(Tenant $tenant)
     {
-        // Drop tenant database
-        DB::statement("DROP DATABASE IF EXISTS {$tenant->database}");
-        
         $tenant->delete();
-
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted successfully!');
-    }
-
-    private function migrateTenant($tenant)
-    {
-        try {
-            // Set the database connection to the tenant's database
-            config(['database.connections.tenant.database' => $tenant->database]);
-            DB::purge('tenant');
-            
-            // Set the default connection to tenant
-            config(['database.default' => 'tenant']);
-            DB::purge();
-            
-            // Run migrations for this tenant
-            Artisan::call('migrate', [
-                '--database' => 'tenant',
-                '--force' => true
-            ]);
-            
-            return true;
-        } catch (\Exception $e) {
-            // Log the error but don't fail the tenant creation
-            \Log::error("Failed to migrate tenant {$tenant->name}: " . $e->getMessage());
-            return false;
-        }
     }
 }

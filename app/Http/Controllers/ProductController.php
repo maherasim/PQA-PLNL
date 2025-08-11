@@ -11,17 +11,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        // Ensure we're using the tenant connection
-        if (request()->has('tenant')) {
-            $tenant = Tenant::find(request()->query('tenant'));
-            if ($tenant) {
-                config(['database.connections.tenant.database' => $tenant->database]);
-                DB::purge('tenant');
-                config(['database.default' => 'tenant']);
-                DB::purge();
-            }
-        }
-        
+        // Tenancy is initialized by middleware (stancl/tenancy). No manual DB switching needed.
         $products = Product::all();
         return view('products.index', compact('products'));
     }
@@ -40,17 +30,7 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
         ]);
 
-        // Ensure we're using the tenant connection
-        if ($request->has('tenant')) {
-            $tenant = Tenant::find($request->query('tenant'));
-            if ($tenant) {
-                config(['database.connections.tenant.database' => $tenant->database]);
-                DB::purge('tenant');
-                config(['database.default' => 'tenant']);
-                DB::purge();
-            }
-        }
-
+                // Tenancy is initialized by middleware (stancl/tenancy). No manual DB switching needed.
         Product::create($request->all());
 
         // Fix the redirect to properly include tenant parameter
@@ -77,17 +57,7 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
         ]);
 
-        // Ensure we're using the tenant connection
-        if ($request->has('tenant')) {
-            $tenant = Tenant::find($request->query('tenant'));
-            if ($tenant) {
-                config(['database.connections.tenant.database' => $tenant->database]);
-                DB::purge('tenant');
-                config(['database.default' => 'tenant']);
-                DB::purge();
-            }
-        }
-
+                // Tenancy is initialized by middleware (stancl/tenancy). No manual DB switching needed.
         $product->update($request->all());
 
         // Fix the redirect to properly include tenant parameter
@@ -97,17 +67,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        // Ensure we're using the tenant connection
-        if (request()->has('tenant')) {
-            $tenant = Tenant::find(request()->query('tenant'));
-            if ($tenant) {
-                config(['database.connections.tenant.database' => $tenant->database]);
-                DB::purge('tenant');
-                config(['database.default' => 'tenant']);
-                DB::purge();
-            }
-        }
-
+                // Tenancy is initialized by middleware (stancl/tenancy). No manual DB switching needed.
         $product->delete();
 
         // Fix the redirect to properly include tenant parameter

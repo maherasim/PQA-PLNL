@@ -11,19 +11,17 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::middleware('tenant')->group(function () {
-                require __DIR__.'/../routes/tenant.php';
-            });
+            Route::middleware([])->group(function () {
+    require __DIR__.'/../routes/tenant.php';
+});
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'tenant' => \App\Http\Middleware\TenantMiddleware::class,
+            
         ]);
         
-        $middleware->web(append: [
-            \App\Http\Middleware\EnsureTenantDatabase::class,
-        ]);
+        // stancl/tenancy will handle DB switching via route middleware; no custom web append needed.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
