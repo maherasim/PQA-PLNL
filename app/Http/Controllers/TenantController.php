@@ -36,13 +36,14 @@ class TenantController extends Controller
         ]);
 
         // Create database & run tenant migrations via stancl/tenancy
-        $tenant->createDatabase();
-        $tenant->makeCurrent();
-        Artisan::call('tenants:migrate', [
+        $tenant->database()->manager()->createDatabase($tenant);
+        \Stancl\Tenancy\Facades\Tenancy::initialize($tenant);
+        Artisan::call('tenants:run', [
+            'commandname' => 'migrate',
             '--tenants' => [$tenant->id],
-            '--force' => true,
+            '--option' => ['force'],
         ]);
-        $tenant->forgetCurrent();
+        \Stancl\Tenancy\Facades\Tenancy::end();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant created successfully!');
     }
