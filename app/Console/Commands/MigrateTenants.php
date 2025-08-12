@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class MigrateTenants extends Command
 {
-    protected $signature = 'tenants:migrate';
-    protected $description = 'Run migrations for all tenant databases';
+    protected $signature = 'tenants:migrate-all-direct';
+    protected $description = 'Run migrations for all tenant databases (direct connection switch)';
 
     public function handle()
     {

@@ -29,7 +29,7 @@
                             </tr>
                             <tr>
                                 <th>Domain:</th>
-                                <td>{{ $tenant->domain }}</td>
+                                <td>{{ optional($tenant->domains()->first())->domain }}</td>
                             </tr>
                             <tr>
                                 <th>Database:</th>
