@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Stancl\Tenancy\Database\Models\Domain as TenancyDomain;
+use Illuminate\Support\Str;
 
 class TenantController extends Controller
 {
@@ -27,9 +28,14 @@ class TenantController extends Controller
             'domain' => 'required|string|unique:domains,domain',
         ]);
 
-        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name));
+        // Create a stable, readable tenant ID from the name
+        $slug = Str::of($request->name)->slug('_');
+
+        // Match what stancl/tenancy will create: prefix + tenant_id + suffix
+        $databaseName = config('tenancy.database.prefix') . $slug . config('tenancy.database.suffix');
 
         $tenant = Tenant::create([
+            'id' => (string) $slug,
             'name' => $request->name,
             'database' => $databaseName,
             'is_active' => true,
