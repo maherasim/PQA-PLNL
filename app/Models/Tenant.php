@@ -39,4 +39,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         $this->database = $name;
     }
+
+    public static function getCustomColumns(): array
+    {
+        return [
+            'id',
+            'name',
+            'database',
+            'is_active',
+        ];
+    }
 }
