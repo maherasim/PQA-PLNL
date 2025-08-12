@@ -27,12 +27,10 @@ class TenantController extends Controller
             'subdomain' => 'required|string|alpha_dash|max:63',
         ]);
 
-        $baseDomain = ltrim((string) env('TENANCY_BASE_DOMAIN'), '.');
         $subdomain = strtolower($request->subdomain);
-        $fullDomain = $subdomain . '.' . $baseDomain;
 
-        // Ensure domain is unique in domains table
-        if (\Stancl\Tenancy\Database\Models\Domain::where('domain', $fullDomain)->exists()) {
+        // Ensure subdomain is unique in domains table (we now store only subdomain)
+        if (\Stancl\Tenancy\Database\Models\Domain::where('domain', $subdomain)->exists()) {
             return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
         }
 
@@ -48,13 +46,11 @@ class TenantController extends Controller
         $tenant->setInternal('db_name', $databaseName);
         $tenant->save();
 
-        // Attach composed subdomain to tenant (stancl/tenancy domains table)
+        // Store only the subdomain in tenancy domains table
         TenancyDomain::create([
-            'domain' => $fullDomain,
+            'domain' => $subdomain,
             'tenant_id' => $tenant->id,
         ]);
-
-        // Database is created & tenant migrations are executed by TenancyServiceProvider (TenantCreated pipeline)
 
         return redirect()->route('tenants.index')->with('success', 'Tenant created successfully!');
     }
@@ -79,9 +75,9 @@ class TenantController extends Controller
         $tenant->update($request->only(['name']));
 
         if ($request->filled('domain')) {
-            // Update or create domain mapping
+            // Update or create domain mapping (still storing subdomain only)
             $domain = TenancyDomain::firstOrNew(['tenant_id' => $tenant->id]);
-            $domain->domain = $request->domain;
+            $domain->domain = strtolower($request->domain);
             $domain->save();
         }
 
