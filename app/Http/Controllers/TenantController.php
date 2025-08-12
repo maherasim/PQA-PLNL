@@ -35,6 +35,10 @@ class TenantController extends Controller
             'is_active' => true,
         ]);
 
+        // Set the internal db_name attribute to ensure the correct database is used
+        $tenant->setInternal('db_name', $databaseName);
+        $tenant->save();
+
         // Attach domain to tenant (stancl/tenancy domains table)
         TenancyDomain::create([
             'domain' => $request->domain,
