@@ -24,8 +24,17 @@ class TenantController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => 'required|string|unique:domains,domain',
+            'subdomain' => 'required|string|alpha_dash|max:63',
         ]);
+
+        $baseDomain = ltrim((string) env('TENANCY_BASE_DOMAIN'), '.');
+        $subdomain = strtolower($request->subdomain);
+        $fullDomain = $subdomain . '.' . $baseDomain;
+
+        // Ensure domain is unique in domains table
+        if (\Stancl\Tenancy\Database\Models\Domain::where('domain', $fullDomain)->exists()) {
+            return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
+        }
 
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name));
 
@@ -39,9 +48,9 @@ class TenantController extends Controller
         $tenant->setInternal('db_name', $databaseName);
         $tenant->save();
 
-        // Attach domain to tenant (stancl/tenancy domains table)
+        // Attach composed subdomain to tenant (stancl/tenancy domains table)
         TenancyDomain::create([
-            'domain' => $request->domain,
+            'domain' => $fullDomain,
             'tenant_id' => $tenant->id,
         ]);
 

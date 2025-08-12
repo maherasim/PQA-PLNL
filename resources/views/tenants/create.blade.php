@@ -27,10 +27,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="domain" class="form-label">Domain</label>
-                        <input type="text" class="form-control @error('domain') is-invalid @enderror" id="domain" name="domain" value="{{ old('domain') }}" placeholder="example.com" required>
-                        @error('domain')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <label for="subdomain" class="form-label">Subdomain</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control @error('subdomain') is-invalid @enderror" id="subdomain" name="subdomain" value="{{ old('subdomain') }}" placeholder="acme" required>
+                            <span class="input-group-text">.{{ env('TENANCY_BASE_DOMAIN') }}</span>
+                        </div>
+                        @error('subdomain')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
