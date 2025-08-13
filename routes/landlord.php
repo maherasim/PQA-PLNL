@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\Landlord\TenantPassportInstallController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,3 +33,6 @@ Route::post('/tenants/bulk-seed', function () {
     \Artisan::call('tenant:artisan', ['command' => 'db:seed', '--all' => true]);
     return redirect()->back()->with('success', 'Seeders completed for all tenants');
 })->name('landlord.tenants.bulk-seed');
+
+// Install passport clients for a given tenant
+Route::post('/tenants/{tenant}/passport-install', [TenantPassportInstallController::class, 'install'])->name('landlord.tenants.passport-install');
