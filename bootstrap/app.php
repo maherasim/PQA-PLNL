@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // stancl/tenancy will handle DB switching via route middleware; no custom web append needed.
     })
     ->withProviders([
+        App\Providers\AuthServiceProvider::class,
         App\Providers\TenancyServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
