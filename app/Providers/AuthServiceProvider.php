@@ -21,6 +21,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        // Ensure all tenants use the same Passport keys from central storage
+        Passport::loadKeysFrom(base_path('storage'));
+
         // No more Passport::routes() in Passport v13+
         // You can optionally define token lifetimes here:
         Passport::tokensExpireIn(now()->addDays(15));
