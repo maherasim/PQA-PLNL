@@ -82,8 +82,8 @@ class TenantController extends Controller
                 'name' => $tenant->name,
                 'subdomain' => $subdomain,
                 'base_url' => $baseUrl,
-                'products_url' => rtrim($baseUrl, '/') . '/products',
-                'products_create_url' => rtrim($baseUrl, '/') . '/products/create',
+                // 'products_url' => rtrim($baseUrl, '/') . '/products',
+                // 'products_create_url' => rtrim($baseUrl, '/') . '/products/create',
             ],
         ], 201);
     }
