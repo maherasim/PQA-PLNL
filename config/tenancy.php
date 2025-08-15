@@ -16,7 +16,9 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => array_filter(array_map('trim', explode(',', env('CENTRAL_DOMAINS', '127.0.0.1,127.0.0.1:8000,localhost,localhost:8000')))),
+   'central_domains' => array_filter(
+    array_map('trim', explode(',', env('CENTRAL_DOMAINS', '')))
+),
 
 
     /**
