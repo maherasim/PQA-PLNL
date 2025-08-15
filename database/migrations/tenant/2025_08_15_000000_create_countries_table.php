@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,9 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('countries', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
+            $table->bigIncrements('id');
             $table->string('name', 100);
-            $table->string('code', 3)->unique();
+            $table->string('code', 3);
             $table->unsignedSmallInteger('phone_code')->nullable();
             $table->string('currency_code', 3)->nullable();
             $table->boolean('is_active')->default(true);
@@ -24,6 +25,10 @@ return new class extends Migration
 
         // Add check constraint for phone_code
         DB::statement('ALTER TABLE countries ADD CONSTRAINT chk_phone_code CHECK (phone_code >= 1 AND phone_code <= 999)');
+
+        Schema::table('countries', function (Blueprint $table) {
+            $table->unique('code', 'idx_countries_code_unique');
+        });
     }
 
     /**

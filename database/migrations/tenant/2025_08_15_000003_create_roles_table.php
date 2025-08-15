@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
+            $table->bigIncrements('id');
             $table->string('role_name', 50);
             $table->text('description')->nullable();
             $table->text('key_responsibilities')->nullable();
-            $table->timestamps();
         });
     }
 

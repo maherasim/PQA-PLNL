@@ -17,17 +17,17 @@ return new class extends Migration
         
         // Create the new users table with the required schema
         Schema::create('users', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
-            $table->string('email', 255)->unique();
+            $table->bigIncrements('id');
+            $table->string('email', 255);
             $table->timestampTz('email_verified_at')->nullable();
             $table->string('full_name', 100);
-            $table->uuid('user_country_id')->nullable();
-            $table->uuid('mobile_country_id')->nullable();
+            $table->unsignedBigInteger('user_country_id')->nullable();
+            $table->unsignedBigInteger('mobile_country_id')->nullable();
             $table->string('mobile_number', 50)->nullable();
-            $table->uuid('status');
+            $table->unsignedBigInteger('status');
             $table->timestampTz('last_login_at')->nullable();
-            $table->uuid('role');
-            $table->string('cvb_id', 50)->unique();
+            $table->unsignedBigInteger('role');
+            $table->string('cvb_id', 50);
             $table->string('cvb_number', 50)->nullable();
             $table->string('password_hash', 255);
             $table->timestampTz('password_created_at')->default(DB::raw('now()'));
@@ -41,18 +41,9 @@ return new class extends Migration
             $table->timestampTz('created_at')->default(DB::raw('now()'));
             $table->timestampTz('updated_at')->default(DB::raw('now()'));
             $table->timestampTz('deleted_at')->nullable();
-            $table->uuid('created_by')->nullable();
-            $table->uuid('updated_by')->nullable();
-            $table->uuid('deleted_by')->nullable();
-            
-            // Add foreign key constraints
-            $table->foreign('user_country_id')->references('id')->on('countries');
-            $table->foreign('mobile_country_id')->references('id')->on('countries');
-            $table->foreign('status')->references('id')->on('status');
-            $table->foreign('role')->references('id')->on('roles');
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
-            $table->foreign('deleted_by')->references('id')->on('users');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
         });
         
         // Create indexes

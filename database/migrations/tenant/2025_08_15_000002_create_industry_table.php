@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('industry', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
+            $table->bigIncrements('id');
             $table->string('industry_name', 50);
-            $table->timestamps();
         });
     }
 
