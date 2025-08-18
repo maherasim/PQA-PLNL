@@ -10,8 +10,8 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@example.com'], // Search criteria
+        User::withTrashed()->updateOrCreate(
+            ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin',
                 'email' => 'admin@example.com', // Ensure email is set
