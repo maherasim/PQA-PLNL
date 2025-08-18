@@ -37,7 +37,7 @@
                             <tr>
                                 <td>{{ $tenant->id }}</td>
                                 <td>{{ $tenant->id }}</td>
-                                <td>{{ optional($tenant->domains()->first())->domain }}</td>
+                                <td>{{ $tenant->domain }}</td>
                                 <td>{{ $tenant->db_name }}</td>
                                 <td>
                                     <span class="badge bg-{{ $tenant->is_active ? 'success' : 'danger' }}">

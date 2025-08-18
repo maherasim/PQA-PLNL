@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Stancl\Tenancy\Database\Models\Domain as TenancyDomain;
+// Domain model not used; domain stored on tenants table
 
 class TenantController extends Controller
 {
@@ -29,8 +29,8 @@ class TenantController extends Controller
 
         $subdomain = strtolower($request->subdomain);
 
-        // Ensure subdomain is unique in domains table (we now store only subdomain)
-        if (\Stancl\Tenancy\Database\Models\Domain::where('domain', $subdomain)->exists()) {
+        // Ensure subdomain is unique in tenants table
+        if (\App\Models\Tenant::where('domain', $subdomain)->exists()) {
             return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
         }
 
@@ -46,11 +46,7 @@ class TenantController extends Controller
         $tenant->setInternal('db_name', $databaseName);
         $tenant->save();
 
-        // Store only the subdomain in tenancy domains table
-        TenancyDomain::create([
-            'domain' => $subdomain,
-            'tenant_id' => $tenant->id,
-        ]);
+        // Domain saved on tenants table; nothing to create
 
         return redirect()->route('tenants.index')->with('success', 'Tenant created successfully!');
     }
@@ -75,10 +71,7 @@ class TenantController extends Controller
         $tenant->update(['domain' => $request->name]);
 
         if ($request->filled('domain')) {
-            // Update or create domain mapping (still storing subdomain only)
-            $domain = TenancyDomain::firstOrNew(['tenant_id' => $tenant->id]);
-            $domain->domain = strtolower($request->domain);
-            $domain->save();
+            $tenant->update(['domain' => strtolower($request->domain)]);
         }
 
         return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully!');

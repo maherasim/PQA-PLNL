@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
-use Stancl\Tenancy\Database\Models\Domain as TenancyDomain;
+// Domain model not used; domain stored on tenants table
 
 class TenantController extends Controller
 {
     public function index()
     {
         $tenants = Tenant::all()->map(function (Tenant $tenant) {
-            $subdomain = TenancyDomain::where('tenant_id', $tenant->id)->value('domain');
+            $subdomain = $tenant->domain;
 
             return [
                 'id' => $tenant->id,
@@ -28,7 +28,7 @@ class TenantController extends Controller
 
     public function show(Tenant $tenant)
     {
-        $subdomain = TenancyDomain::where('tenant_id', $tenant->id)->value('domain');
+        $subdomain = $tenant->domain;
 
         return response()->json([
             'data' => [
@@ -50,14 +50,14 @@ class TenantController extends Controller
 
         $subdomain = strtolower($validated['subdomain']);
 
-        if (TenancyDomain::where('domain', $subdomain)->exists()) {
+        if (Tenant::where('domain', $subdomain)->exists()) {
             return response()->json(['message' => 'This subdomain is already taken.'], 422);
         }
 
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
 
         $tenant = Tenant::create([
-            'domain' => $validated['name'],
+            'domain' => $subdomain,
             'db_name' => $databaseName,
             'status' => null,
         ]);
@@ -66,10 +66,7 @@ class TenantController extends Controller
         $tenant->setInternal('db_name', $databaseName);
         $tenant->save();
 
-        TenancyDomain::create([
-            'domain' => $subdomain,
-            'tenant_id' => $tenant->id,
-        ]);
+        // domain persisted on tenants table
 
         $baseUrl = $this->makeTenantBaseUrl($subdomain);
 

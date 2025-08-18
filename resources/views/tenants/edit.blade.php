@@ -29,7 +29,7 @@
 
                     <div class="mb-3">
                         <label for="domain" class="form-label">Domain</label>
-                        <input type="text" class="form-control @error('domain') is-invalid @enderror" id="domain" name="domain" value="{{ old('domain', optional($tenant->domains()->first())->domain) }}" required>
+                        <input type="text" class="form-control @error('domain') is-invalid @enderror" id="domain" name="domain" value="{{ old('domain', $tenant->domain) }}" required>
                         @error('domain')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
