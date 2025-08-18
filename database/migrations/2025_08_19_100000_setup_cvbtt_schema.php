@@ -232,8 +232,8 @@ SQL);
                 if (!Schema::hasColumn('tenants', 'updated_at')) {
                     $table->timestampTz('updated_at')->nullable()->useCurrentOnUpdate();
                 }
-                if (Schema::hasColumn('tenants', 'data')) {
-                    $table->dropColumn('data');
+                if (!Schema::hasColumn('tenants', 'data')) {
+                    $table->jsonb('data')->default(DB::raw("'[]'::jsonb"));
                 }
             });
             DB::statement("COMMENT ON TABLE tenants IS 'Tenant management table'");
@@ -248,6 +248,7 @@ SQL);
                 $table->string('domain', 255)->nullable();
                 $table->string('db_address', 100)->nullable();
                 $table->string('db_name', 50)->nullable();
+                $table->jsonb('data')->default(DB::raw("'[]'::jsonb"));
                 $table->timestampTz('created_at')->useCurrent();
                 $table->timestampTz('updated_at')->default(DB::raw('now()'));
                 $table->timestampTz('deleted_at')->nullable();
