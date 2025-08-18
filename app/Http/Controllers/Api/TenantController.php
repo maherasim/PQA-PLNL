@@ -60,6 +60,7 @@ class TenantController extends Controller
             'domain' => $subdomain,
             'db_name' => $databaseName,
             'status' => null,
+            'created_by' => auth()->id() ?? null,
         ]);
 
         // Ensure the db_name internal attribute is set for stancl/tenancy database naming

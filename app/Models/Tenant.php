@@ -29,6 +29,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'deleted_at' => 'datetime',
     ];
 
+    // Disable stancl default data casting/column expectations
+    protected $castsForJson = [];
+    protected $guarded = [];
+    protected $attributes = [];
+
     // Map your existing `database` column to tenancy's database name
     public function getTenantKeyName(): string
     {
@@ -54,6 +59,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'domain',
             'db_address',
             'db_name',
+            'created_by',
+            'updated_by',
+            'deleted_by',
         ];
     }
 }
