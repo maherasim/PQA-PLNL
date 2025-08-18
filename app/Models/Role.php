@@ -9,6 +9,8 @@ class Role extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     /**
      * The table associated with the model.
      *
@@ -32,10 +34,7 @@ class Role extends Model
      *
      * @var array
      */
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    // No timestamps per schema
 
     /**
      * Get the users with this role.

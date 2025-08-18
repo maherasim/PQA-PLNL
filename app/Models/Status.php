@@ -9,6 +9,8 @@ class Status extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     /**
      * The table associated with the model.
      *
@@ -30,10 +32,7 @@ class Status extends Model
      *
      * @var array
      */
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    // No timestamps on this table per schema
 
     /**
      * Get the vendors with this status.

@@ -9,6 +9,8 @@ class Industry extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     /**
      * The table associated with the model.
      *
@@ -30,8 +32,5 @@ class Industry extends Model
      *
      * @var array
      */
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    // No timestamps per schema
 }
