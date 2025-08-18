@@ -21,7 +21,6 @@
                         <a href="{{ route('tenant.profile') }}" class="text-gray-600 hover:text-gray-900">Profile</a>
                         <a href="{{ route('tenant.analytics') }}" class="text-gray-600 hover:text-gray-900">Analytics</a>
                         <a href="{{ route('tenant.reports') }}" class="text-gray-600 hover:text-gray-900">Reports</a>
-                        <a href="{{ route('products.index') }}" class="text-gray-600 hover:text-gray-900">Products</a>
                     </div>
                 </div>
             </div>
@@ -42,8 +41,8 @@
                                 </div>
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Products</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ \App\Models\Product::count() }}</dd>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Active Users</dt>
+                                        <dd class="text-lg font-medium text-gray-900">0</dd>
                                     </dl>
                                 </div>
                             </div>

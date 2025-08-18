@@ -1,6 +1,6 @@
 <?php
 
-<?php return; // Deprecated: replaced by stancl/tenancy InitializeTenancyByRequestData middleware
+<?php return; // Deprecated middleware
 
 namespace App\Http\Middleware;
 
@@ -13,8 +13,8 @@ class EnsureTenantDatabase
 {
     public function handle(Request $request, Closure $next)
     {
-        // Check if we're on a product route with tenant parameter
-        if ($request->is('products*') && $request->has('tenant')) {
+        // No product routes anymore; pass-through
+        if (false) {
             $tenantId = $request->query('tenant');
             $tenant = Tenant::find($tenantId);
             

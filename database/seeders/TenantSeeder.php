@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
-use App\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -36,35 +35,9 @@ class TenantSeeder extends Seeder
                 'status' => null,
             ]);
             
-            // Add sample products to this tenant's database
-            $this->addSampleProducts($tenant);
+            // No products seeding
         }
     }
     
-    private function addSampleProducts($tenant)
-    {
-        // Set the database connection to the tenant's database
-        config(['database.connections.tenant.database' => $tenant->db_name]);
-        DB::purge('tenant');
-        
-        // Create sample products for this tenant
-        $products = [
-            [
-                'name' => 'Product 1',
-                'description' => 'Sample product',
-                'price' => 99.99,
-                'stock' => 10,
-            ],
-            [
-                'name' => 'Product 2',
-                'description' => 'Another sample product',
-                'price' => 149.99,
-                'stock' => 5,
-            ],
-        ];
-        
-        foreach ($products as $productData) {
-            Product::create($productData);
-        }
-    }
+    private function addSampleProducts($tenant) {}
 }

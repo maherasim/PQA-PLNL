@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TenantController;
-use App\Http\Controllers\ProductController;
-use App\Models\Product;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +22,7 @@ Route::get('/test-tenant/{tenantId}', function ($tenantId) {
     
     // Get current tenant info
     $currentTenant = app('currentTenant');
-    $products = Product::all();
+    $products = collect();
     
     // Get current database connection info
     $currentDatabase = config('database.connections.tenant.database');
@@ -34,8 +32,8 @@ Route::get('/test-tenant/{tenantId}', function ($tenantId) {
         'requested_tenant' => $tenant->id,
         'tenant_database' => $tenant->db_name,
         'current_database' => $currentDatabase,
-        'products_count' => $products->count(),
-        'products' => $products->toArray(),
+        'products_count' => 0,
+        'products' => [],
         'database_connection' => DB::connection()->getDatabaseName()
     ];
 });
@@ -54,14 +52,14 @@ Route::get('/debug-db', function () {
         config(['database.default' => 'tenant']);
         DB::purge();
         
-        $products = Product::all();
+        $products = collect();
         
         return [
             'tenant' => $tenant->id,
             'database' => $tenant->db_name,
             'current_db' => DB::connection()->getDatabaseName(),
-            'products_count' => $products->count(),
-            'products' => $products->toArray()
+            'products_count' => 0,
+            'products' => []
         ];
     }
     

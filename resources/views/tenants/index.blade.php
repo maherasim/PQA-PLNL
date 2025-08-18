@@ -45,7 +45,6 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('products.index') }}?tenant={{ $tenant->id }}" class="btn btn-sm btn-success">View Products</a>
                                     <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-sm btn-info">View</a>
                                     <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-sm btn-warning">Edit</a>
                                     <form action="{{ route('tenants.destroy', $tenant) }}" method="POST" class="d-inline">

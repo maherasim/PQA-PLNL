@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Tenant\AuthController as TenantAuthController;
 
 // Routes in this file are loaded inside the `tenant` middleware group (see bootstrap/app.php)
@@ -19,5 +18,5 @@ Route::middleware(['api', 'Stancl\Tenancy\Middleware\InitializeTenancyBySubdomai
 
 // Tenant web routes (session-based UI)
 Route::middleware(['web', 'Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain'])->group(function () {
-    Route::resource('products', ProductController::class);
+    // no product routes
 });
