@@ -15,24 +15,26 @@ class TenantSeeder extends Seeder
         $tenants = [
             [
                 'name' => 'Company A',
-                'domain' => 'company-a.local',
-                'database' => 'tenant_company_a',
-                'is_active' => true,
+                'domain' => 'company-a',
+                'db_name' => 'tenant_company_a',
             ],
             [
                 'name' => 'Company B',
-                'domain' => 'company-b.local',
-                'database' => 'tenant_company_b',
-                'is_active' => true,
+                'domain' => 'company-b',
+                'db_name' => 'tenant_company_b',
             ],
         ];
 
         foreach ($tenants as $tenantData) {
             // Create tenant database
-            DB::statement("CREATE DATABASE IF NOT EXISTS {$tenantData['database']}");
+            DB::statement("CREATE DATABASE IF NOT EXISTS {$tenantData['db_name']}");
             
             // Create tenant record
-            $tenant = Tenant::create($tenantData);
+            $tenant = Tenant::create([
+                'domain' => $tenantData['domain'],
+                'db_name' => $tenantData['db_name'],
+                'status' => null,
+            ]);
             
             // Add sample products to this tenant's database
             $this->addSampleProducts($tenant);
@@ -42,20 +44,20 @@ class TenantSeeder extends Seeder
     private function addSampleProducts($tenant)
     {
         // Set the database connection to the tenant's database
-        config(['database.connections.tenant.database' => $tenant->database]);
+        config(['database.connections.tenant.database' => $tenant->db_name]);
         DB::purge('tenant');
         
         // Create sample products for this tenant
         $products = [
             [
-                'name' => $tenant->name . ' Product 1',
-                'description' => 'Sample product for ' . $tenant->name,
+                'name' => 'Product 1',
+                'description' => 'Sample product',
                 'price' => 99.99,
                 'stock' => 10,
             ],
             [
-                'name' => $tenant->name . ' Product 2',
-                'description' => 'Another sample product for ' . $tenant->name,
+                'name' => 'Product 2',
+                'description' => 'Another sample product',
                 'price' => 149.99,
                 'stock' => 5,
             ],
