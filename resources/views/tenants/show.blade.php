@@ -37,11 +37,7 @@
                             </tr>
                             <tr>
                                 <th>Status:</th>
-                                <td>
-                                    <span class="badge bg-{{ $tenant->is_active ? 'success' : 'danger' }}">
-                                        {{ $tenant->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
+                                <td><span class="badge bg-secondary">—</span></td>
                             </tr>
                             <tr>
                                 <th>Created:</th>

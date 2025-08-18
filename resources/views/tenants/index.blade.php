@@ -40,9 +40,7 @@
                                 <td>{{ $tenant->domain }}</td>
                                 <td>{{ $tenant->db_name }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $tenant->is_active ? 'success' : 'danger' }}">
-                                        {{ $tenant->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
+                                    <span class="badge bg-secondary">—</span>
                                 </td>
                                 <td>
                                     <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-sm btn-info">View</a>

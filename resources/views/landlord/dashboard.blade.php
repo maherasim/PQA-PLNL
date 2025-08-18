@@ -58,7 +58,7 @@
                                 <div class="ml-5 w-0 flex-1">
                                     <dl>
                                         <dt class="text-sm font-medium text-gray-500 truncate">Active Tenants</dt>
-                                        <dd class="text-lg font-medium text-gray-900">{{ \App\Models\Tenant::where('is_active', true)->count() }}</dd>
+                                        <dd class="text-lg font-medium text-gray-900">—</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -135,11 +135,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $tenant->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $tenant->domain }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $tenant->db_name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $tenant->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                                {{ $tenant->is_active ? 'Active' : 'Inactive' }}
-                                            </span>
-                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">—</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="{{ route('tenants.show', $tenant) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                                         </td>
