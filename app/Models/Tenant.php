@@ -31,8 +31,22 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     // Disable stancl default data casting/column expectations
     protected $castsForJson = [];
-    protected $guarded = [];
+    protected $guarded = ['data'];
     protected $attributes = [];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Tenant $tenant) {
+            if (isset($tenant->attributes['data'])) {
+                unset($tenant->attributes['data']);
+            }
+        });
+        static::updating(function (Tenant $tenant) {
+            if (isset($tenant->attributes['data'])) {
+                unset($tenant->attributes['data']);
+            }
+        });
+    }
 
     // Map your existing `database` column to tenancy's database name
     public function getTenantKeyName(): string
@@ -59,6 +73,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'domain',
             'db_address',
             'db_name',
+            'created_at',
+            'updated_at',
+            'deleted_at',
             'created_by',
             'updated_by',
             'deleted_by',
