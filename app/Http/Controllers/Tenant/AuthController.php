@@ -4,28 +4,52 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Status;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20|unique:users,phone',
+            'mobile_number' => 'nullable|string|max:50|unique:users,mobile_number',
             'password' => 'required|string|min:8',
+            'mobile_country_id' => 'nullable|exists:countries,id',
+            'user_country_id' => 'nullable|exists:countries,id',
         ]);
+
+        // Get default status and role
+        $defaultStatus = Status::first();
+        $defaultRole = Role::first();
 
         $user = User::create([
-            'name' => $data['name'],
+            'full_name' => $data['full_name'],
             'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'password' => Hash::make($data['password']),
+            'mobile_number' => $data['mobile_number'] ?? null,
+            'mobile_country_id' => $data['mobile_country_id'] ?? null,
+            'user_country_id' => $data['user_country_id'] ?? null,
+            'password_hash' => Hash::make($data['password']),
+            'cvb_id' => 'CVB' . strtoupper(uniqid()),
+            'status' => $defaultStatus ? $defaultStatus->id : 1,
+            'role' => $defaultRole ? $defaultRole->id : 1,
+            'password_created_at' => now(),
+            'password_last_changed' => now(),
         ]);
 
-        return response()->json(['message' => 'Registered successfully'], 201);
+        return response()->json([
+            'message' => 'Registered successfully',
+            'user' => [
+                'id' => $user->id,
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'cvb_id' => $user->cvb_id,
+            ]
+        ], 201);
     }
 
     public function login(Request $request)
@@ -36,7 +60,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $credentials['email'])->first();
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -47,8 +71,9 @@ class AuthController extends Controller
             'access_token' => $token,
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'full_name' => $user->full_name,
                 'email' => $user->email,
+                'cvb_id' => $user->cvb_id,
             ],
         ]);
     }
