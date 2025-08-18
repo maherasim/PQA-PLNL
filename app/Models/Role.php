@@ -9,7 +9,7 @@ class Role extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * The table associated with the model.
@@ -28,13 +28,6 @@ class Role extends Model
         'description',
         'key_responsibilities',
     ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    // No timestamps per schema
 
     /**
      * Get the users with this role.

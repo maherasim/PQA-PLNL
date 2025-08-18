@@ -9,7 +9,7 @@ class Industry extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * The table associated with the model.
@@ -26,11 +26,4 @@ class Industry extends Model
     protected $fillable = [
         'industry_name',
     ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    // No timestamps per schema
 }
