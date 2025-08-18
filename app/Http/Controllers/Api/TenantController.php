@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\Status;
+use App\Models\User;
 use Illuminate\Http\Request;
 // Domain model not used; domain stored on tenants table
 
@@ -56,11 +58,21 @@ class TenantController extends Controller
 
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
 
+        // Resolve required foreign keys
+        $statusId = Status::value('id');
+        if (!$statusId) {
+            $statusId = Status::create(['status_name' => 'Active'])->id;
+        }
+        $createdBy = auth()->id() ?: User::value('id');
+        if (!$createdBy) {
+            return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
+        }
+
         $tenant = Tenant::create([
             'domain' => $subdomain,
             'db_name' => $databaseName,
-            'status' => null,
-            'created_by' => auth()->id() ?? null,
+            'status' => $statusId,
+            'created_by' => $createdBy,
         ]);
 
         // Ensure the db_name internal attribute is set for stancl/tenancy database naming
