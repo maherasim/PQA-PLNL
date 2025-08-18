@@ -49,15 +49,7 @@ class TenancyServiceProvider extends ServiceProvider
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
 
-            // Domain events
-            Events\CreatingDomain::class => [],
-            Events\DomainCreated::class => [],
-            Events\SavingDomain::class => [],
-            Events\DomainSaved::class => [],
-            Events\UpdatingDomain::class => [],
-            Events\DomainUpdated::class => [],
-            Events\DeletingDomain::class => [],
-            Events\DomainDeleted::class => [],
+            // Domain events (unused since domain is on tenants table)
 
             // Database events
             Events\DatabaseCreated::class => [],
