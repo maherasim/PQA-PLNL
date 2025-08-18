@@ -11,7 +11,7 @@ class Permission extends Model
 
     protected $table = 'permissions';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'permissions_name',
