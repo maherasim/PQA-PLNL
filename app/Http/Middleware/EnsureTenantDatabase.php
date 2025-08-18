@@ -20,7 +20,7 @@ class EnsureTenantDatabase
             
             if ($tenant) {
                 // Set the tenant database connection
-                config(['database.connections.tenant.database' => $tenant->database]);
+                config(['database.connections.tenant.database' => $tenant->db_name]);
                 DB::purge('tenant');
                 
                 // Set the current tenant in the container

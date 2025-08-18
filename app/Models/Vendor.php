@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Vendor extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * The table associated with the model.
@@ -23,21 +23,18 @@ class Vendor extends Model
      * @var array
      */
     protected $fillable = [
-        'company_name',
-        'website',
-        'country_id',
-        'phone_country_id',
-        'phone',
-        'logo_url',
-        'email',
-        'description',
-        'industry',
-        'mailing_address',
-        'status',
+        'tenant_id',
+        'organization_id',
         'vendor_type',
-        'created_by',
+        'status',
+        'invited_by',
+        'invited_at',
+        'accepted_at',
+        'accepted_by',
+        'rejected_at',
+        'rejection_reason',
+        'expires_at',
         'updated_by',
-        'deleted_by',
     ];
 
     /**
@@ -46,57 +43,44 @@ class Vendor extends Model
      * @var array
      */
     protected $casts = [
+        'invited_at' => 'datetime',
+        'accepted_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'expires_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
         'vendor_type' => 'string',
     ];
 
-    /**
-     * Get the country that owns the vendor.
-     */
-    public function country()
+    public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Country::class, 'country_id');
+        return $this->belongsTo(Tenant::class);
     }
 
-    /**
-     * Get the phone country of the vendor.
-     */
-    public function phoneCountry()
+    public function organization(): BelongsTo
     {
-        return $this->belongsTo(Country::class, 'phone_country_id');
+        return $this->belongsTo(Organization::class);
     }
 
-    /**
-     * Get the status of the vendor.
-     */
-    public function status()
+    public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
     }
 
-    /**
-     * Get the user that created the vendor.
-     */
-    public function createdBy()
+    public function invitedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'invited_by');
     }
 
-    /**
-     * Get the user that last updated the vendor.
-     */
-    public function updatedBy()
+    public function acceptedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'accepted_by');
+    }
+
+    public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    /**
-     * Get the user that deleted the vendor.
-     */
-    public function deletedBy()
-    {
-        return $this->belongsTo(User::class, 'deleted_by');
-    }
+    // No soft delete tracking in vendors schema
 }

@@ -24,8 +24,8 @@
                                 <td>{{ $tenant->id }}</td>
                             </tr>
                             <tr>
-                                <th>Name:</th>
-                                <td>{{ $tenant->name }}</td>
+                                <th>Tenant ID:</th>
+                                <td>{{ $tenant->id }}</td>
                             </tr>
                             <tr>
                                 <th>Domain:</th>
@@ -33,7 +33,7 @@
                             </tr>
                             <tr>
                                 <th>Database:</th>
-                                <td>{{ $tenant->database }}</td>
+                                <td>{{ $tenant->db_name }}</td>
                             </tr>
                             <tr>
                                 <th>Status:</th>

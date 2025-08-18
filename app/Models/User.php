@@ -20,8 +20,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'password',
         'email',
         'email_verified_at',
         'full_name',
@@ -30,7 +28,6 @@ class User extends Authenticatable
         'mobile_number',
         'status',
         'last_login_at',
-        'role',
         'cvb_id',
         'cvb_number',
         'password_hash',
@@ -54,7 +51,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password_hash',
-        'remember_token',
     ];
 
     /**
@@ -105,13 +101,7 @@ class User extends Authenticatable
         return $this->belongsTo(Status::class);
     }
 
-    /**
-     * Get the role of the user.
-     */
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
+    // No direct role foreign key on users; roles are mapped via user_organization_role_mapping
 
     /**
      * Get the user that created this user.

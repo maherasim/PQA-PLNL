@@ -16,9 +16,8 @@ class TenantController extends Controller
 
             return [
                 'id' => $tenant->id,
-                'name' => $tenant->name,
-                'database' => $tenant->database,
-                'is_active' => (bool) $tenant->is_active,
+                'domain' => $tenant->domain,
+                'database' => $tenant->db_name,
                 'subdomain' => $subdomain,
                 'base_url' => $this->makeTenantBaseUrl($subdomain),
             ];
@@ -34,9 +33,8 @@ class TenantController extends Controller
         return response()->json([
             'data' => [
                 'id' => $tenant->id,
-                'name' => $tenant->name,
-                'database' => $tenant->database,
-                'is_active' => (bool) $tenant->is_active,
+                'domain' => $tenant->domain,
+                'database' => $tenant->db_name,
                 'subdomain' => $subdomain,
                 'base_url' => $this->makeTenantBaseUrl($subdomain),
             ],
@@ -56,12 +54,12 @@ class TenantController extends Controller
             return response()->json(['message' => 'This subdomain is already taken.'], 422);
         }
 
-        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name']));
+        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
 
         $tenant = Tenant::create([
-            'name' => $validated['name'],
-            'database' => $databaseName,
-            'is_active' => true,
+            'domain' => $validated['name'],
+            'db_name' => $databaseName,
+            'status' => null,
         ]);
 
         // Ensure the db_name internal attribute is set for stancl/tenancy database naming
@@ -79,11 +77,9 @@ class TenantController extends Controller
             'message' => 'Tenant created successfully',
             'data' => [
                 'id' => $tenant->id,
-                'name' => $tenant->name,
+                'domain' => $tenant->domain,
                 'subdomain' => $subdomain,
                 'base_url' => $baseUrl,
-                // 'products_url' => rtrim($baseUrl, '/') . '/products',
-                // 'products_create_url' => rtrim($baseUrl, '/') . '/products/create',
             ],
         ], 201);
     }

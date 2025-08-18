@@ -21,6 +21,6 @@ class TenantPassportInstallController extends Controller
             tenancy()->end();
         }
 
-        return redirect()->back()->with('success', 'Passport installed for tenant '.$tenant->name);
+        return redirect()->back()->with('success', 'Passport installed for tenant '.$tenant->id);
     }
 }

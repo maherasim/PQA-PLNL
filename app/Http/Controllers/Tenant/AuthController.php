@@ -36,7 +36,7 @@ class AuthController extends Controller
             'password_hash' => Hash::make($data['password']),
             'cvb_id' => 'CVB' . strtoupper(uniqid()),
             'status' => $defaultStatus ? $defaultStatus->id : 1,
-            'role' => $defaultRole ? $defaultRole->id : 1,
+            // roles are mapped via user_organization_role_mapping
             'password_created_at' => now(),
             'password_last_changed' => now(),
         ]);

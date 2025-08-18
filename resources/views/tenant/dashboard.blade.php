@@ -14,7 +14,7 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
                         <h1 class="text-xl font-semibold text-gray-800">
-                            {{ app('currentTenant')->name ?? 'Tenant' }} Dashboard
+                            {{ app('currentTenant')->id ?? 'Tenant' }} Dashboard
                         </h1>
                     </div>
                     <div class="flex items-center space-x-4">

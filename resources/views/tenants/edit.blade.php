@@ -20,8 +20,8 @@
                     @method('PUT')
                     
                     <div class="mb-3">
-                        <label for="name" class="form-label">Tenant Name</label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $tenant->name) }}" required>
+                        <label for="name" class="form-label">Tenant Domain</label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $tenant->domain) }}" required>
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

@@ -36,9 +36,9 @@
                         @foreach($tenants as $tenant)
                             <tr>
                                 <td>{{ $tenant->id }}</td>
-                                <td>{{ $tenant->name }}</td>
+                                <td>{{ $tenant->id }}</td>
                                 <td>{{ optional($tenant->domains()->first())->domain }}</td>
-                                <td>{{ $tenant->database }}</td>
+                                <td>{{ $tenant->db_name }}</td>
                                 <td>
                                     <span class="badge bg-{{ $tenant->is_active ? 'success' : 'danger' }}">
                                         {{ $tenant->is_active ? 'Active' : 'Inactive' }}

@@ -15,13 +15,20 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     use HasDomains;
 
     protected $fillable = [
-        'name',
-        'database',
-        'is_active',
+        'organization_id',
+        'status',
+        'domain',
+        'db_address',
+        'db_name',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     // Map your existing `database` column to tenancy's database name
@@ -32,21 +39,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function getDatabaseName(): ?string
     {
-        return $this->database;
+        return $this->db_name;
     }
 
     public function setDatabaseName(string $name): void
     {
-        $this->database = $name;
+        $this->db_name = $name;
     }
 
     public static function getCustomColumns(): array
     {
         return [
             'id',
-            'name',
-            'database',
-            'is_active',
+            'organization_id',
+            'status',
+            'domain',
+            'db_address',
+            'db_name',
         ];
     }
 }

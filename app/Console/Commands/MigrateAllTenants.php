@@ -24,11 +24,11 @@ class MigrateAllTenants extends Command
         $this->info("Found {$tenants->count()} tenants. Starting migration...");
         
         foreach ($tenants as $tenant) {
-            $this->info("Migrating tenant: {$tenant->name} ({$tenant->database})");
+            $this->info("Migrating tenant: {$tenant->id} ({$tenant->db_name})");
             
             try {
                 // Set the database connection to the tenant's database
-                config(['database.connections.tenant.database' => $tenant->database]);
+                config(['database.connections.tenant.database' => $tenant->db_name]);
                 DB::purge('tenant');
                 
                 // Set the default connection to tenant
@@ -41,10 +41,10 @@ class MigrateAllTenants extends Command
                     '--force' => true
                 ]);
                 
-                $this->info("✓ Successfully migrated {$tenant->name}");
+                $this->info("✓ Successfully migrated tenant {$tenant->id}");
                 
             } catch (\Exception $e) {
-                $this->error("✗ Failed to migrate {$tenant->name}: " . $e->getMessage());
+                $this->error("✗ Failed to migrate tenant {$tenant->id}: " . $e->getMessage());
             }
         }
         

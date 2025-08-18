@@ -16,10 +16,10 @@ class MigrateTenants extends Command
         $tenants = Tenant::all();
         
         foreach ($tenants as $tenant) {
-            $this->info("Migrating tenant: {$tenant->name} ({$tenant->database})");
+            $this->info("Migrating tenant: {$tenant->id} ({$tenant->db_name})");
             
             // Set the database connection to the tenant's database
-            config(['database.connections.tenant.database' => $tenant->database]);
+            config(['database.connections.tenant.database' => $tenant->db_name]);
             DB::purge('tenant');
             
             // Run migrations for this tenant

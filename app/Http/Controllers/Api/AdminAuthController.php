@@ -19,7 +19,7 @@ class AdminAuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -30,7 +30,7 @@ class AdminAuthController extends Controller
             'access_token' => $token,
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'full_name' => $user->full_name,
                 'email' => $user->email,
             ],
         ]);

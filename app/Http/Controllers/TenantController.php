@@ -34,12 +34,12 @@ class TenantController extends Controller
             return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
         }
 
-        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name));
+        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name)) . '_' . substr(sha1(uniqid()), 0, 6);
 
         $tenant = Tenant::create([
-            'name' => $request->name,
-            'database' => $databaseName,
-            'is_active' => true,
+            'domain' => $request->name,
+            'db_name' => $databaseName,
+            'status' => null,
         ]);
 
         // Set the internal db_name attribute to ensure the correct database is used
@@ -72,7 +72,7 @@ class TenantController extends Controller
             'domain' => 'required|string|unique:domains,domain,' . $tenant->id . ',tenant_id',
         ]);
 
-        $tenant->update($request->only(['name']));
+        $tenant->update(['domain' => $request->name]);
 
         if ($request->filled('domain')) {
             // Update or create domain mapping (still storing subdomain only)

@@ -30,9 +30,9 @@ Route::get('/test-tenant/{tenantId}', function ($tenantId) {
     $currentDatabase = config('database.connections.tenant.database');
     
     return [
-        'current_tenant' => $currentTenant ? $currentTenant->name : 'No tenant',
-        'requested_tenant' => $tenant->name,
-        'tenant_database' => $tenant->database,
+        'current_tenant' => $currentTenant ? $currentTenant->id : 'No tenant',
+        'requested_tenant' => $tenant->id,
+        'tenant_database' => $tenant->db_name,
         'current_database' => $currentDatabase,
         'products_count' => $products->count(),
         'products' => $products->toArray(),
@@ -47,7 +47,7 @@ Route::get('/debug-db', function () {
     
     if ($tenant) {
         // Set the tenant database connection
-        config(['database.connections.tenant.database' => $tenant->database]);
+        config(['database.connections.tenant.database' => $tenant->db_name]);
         DB::purge('tenant');
         
         // Set the default connection to tenant
@@ -57,8 +57,8 @@ Route::get('/debug-db', function () {
         $products = Product::all();
         
         return [
-            'tenant' => $tenant->name,
-            'database' => $tenant->database,
+            'tenant' => $tenant->id,
+            'database' => $tenant->db_name,
             'current_db' => DB::connection()->getDatabaseName(),
             'products_count' => $products->count(),
             'products' => $products->toArray()
