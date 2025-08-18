@@ -12,45 +12,46 @@ use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $data = $request->validate([
-            'full_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'mobile_number' => 'nullable|string|max:50|unique:users,mobile_number',
-            'password' => 'required|string|min:8',
-            'mobile_country_id' => 'nullable|exists:countries,id',
-            'user_country_id' => 'nullable|exists:countries,id',
-        ]);
+public function register(Request $request)
+{
+    $data = $request->validate([
+        'full_name' => 'required|string|max:100',
+        'email' => 'required|email|unique:users,email',
+        'mobile_number' => 'nullable|string|max:50|unique:users,mobile_number',
+        'password' => 'required|string|min:8',
+        // 'mobile_country_id' => 'nullable|exists:countries,id',
+        // 'user_country_id' => 'nullable|exists:countries,id',
+    ]);
 
-        // Get default status and role
-        $defaultStatus = Status::first();
-        $defaultRole = Role::first();
+    // Fetch default status (e.g. 'Active')
+    // $defaultStatus = Status::first();
 
-        $user = User::create([
-            'full_name' => $data['full_name'],
-            'email' => $data['email'],
-            'mobile_number' => $data['mobile_number'] ?? null,
-            'mobile_country_id' => $data['mobile_country_id'] ?? null,
-            'user_country_id' => $data['user_country_id'] ?? null,
-            'password_hash' => Hash::make($data['password']),
-            'cvb_id' => 'CVB' . strtoupper(uniqid()),
-            'status' => $defaultStatus ? $defaultStatus->id : 1,
-            // roles are mapped via user_organization_role_mapping
-            'password_created_at' => now(),
-            'password_last_changed' => now(),
-        ]);
+    // Roles are managed elsewhere, so not set here
+    $user = User::create([
+        'full_name' => $data['full_name'],
+        'email' => $data['email'],
+        'mobile_number' => $data['mobile_number'] ?? null,
+        // 'mobile_country_id' => $data['mobile_country_id'] ?? null,
+        // 'user_country_id' => $data['user_country_id'] ?? null,
+        'password_hash' => Hash::make($data['password']),
+        'cvb_id' => 'CVB' . strtoupper(uniqid()),
+        // 'status' => $defaultStatus ? $defaultStatus->id : null,
+        'password_created_at' => now(),
+        'password_last_changed' => now(),
+        // Initialize other optional fields as needed
+    ]);
 
-        return response()->json([
-            'message' => 'Registered successfully',
-            'user' => [
-                'id' => $user->id,
-                'full_name' => $user->full_name,
-                'email' => $user->email,
-                'cvb_id' => $user->cvb_id,
-            ]
-        ], 201);
-    }
+    return response()->json([
+        'message' => 'Registered successfully',
+        'user' => [
+            'id' => $user->id,
+            'full_name' => $user->full_name,
+            'email' => $user->email,
+            'cvb_id' => $user->cvb_id,
+        ]
+    ], 201);
+}
+
 
     public function login(Request $request)
     {

@@ -33,9 +33,9 @@ class TenantController extends Controller
         if (\App\Models\Tenant::where('domain', $subdomain)->exists()) {
             return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
         }
-
+dd( $subdomain);
         $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name)) . '_' . substr(sha1(uniqid()), 0, 6);
-
+ 
         $tenant = Tenant::create([
             'domain' => $request->name,
             'db_name' => $databaseName,

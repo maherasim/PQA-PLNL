@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -72,6 +73,7 @@ class User extends Authenticatable
             'last_successful_login' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'id' => 'string',
             'deleted_at' => 'datetime',
             'password_change_required' => 'boolean',
         ];

@@ -43,56 +43,62 @@ class TenantController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'subdomain' => 'required|string|alpha_dash|max:63',
-        ]);
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'subdomain' => 'required|string|alpha_dash|max:63',
+        'created_by' => 'nullable|uuid|exists:users,id', // <-- allow optional UUID input
+    ]);
 
-        $subdomain = strtolower($validated['subdomain']);
+    $subdomain = strtolower($validated['subdomain']);
 
-        if (Tenant::where('domain', $subdomain)->exists()) {
-            return response()->json(['message' => 'This subdomain is already taken.'], 422);
-        }
-
-        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
-
-        // Resolve required foreign keys
-        $statusId = Status::value('id');
-        if (!$statusId) {
-            $statusId = Status::create(['status_name' => 'Active'])->id;
-        }
-        $createdBy = auth()->id() ?: User::value('id');
-        if (!$createdBy) {
-            return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
-        }
-
-        $tenant = Tenant::create([
-            'domain' => $subdomain,
-            'db_name' => $databaseName,
-            'status' => $statusId,
-            'created_by' => $createdBy,
-        ]);
-
-        // Ensure the db_name internal attribute is set for stancl/tenancy database naming
-        $tenant->setInternal('db_name', $databaseName);
-        $tenant->save();
-
-        // domain persisted on tenants table
-
-        $baseUrl = $this->makeTenantBaseUrl($subdomain);
-
-        return response()->json([
-            'message' => 'Tenant created successfully',
-            'data' => [
-                'id' => $tenant->id,
-                'domain' => $tenant->domain,
-                'subdomain' => $subdomain,
-                'base_url' => $baseUrl,
-            ],
-        ], 201);
+    if (Tenant::where('domain', $subdomain)->exists()) {
+        return response()->json(['message' => 'This subdomain is already taken.'], 422);
     }
+
+    $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
+
+    // Ensure status exists
+    $statusId = Status::value('id');
+    if (!$statusId) {
+        $statusId = Status::create(['status_name' => 'Active'])->id;
+    }
+
+    // Use `created_by` from request, fallback to auth, then fallback to first user
+    $createdBy = $validated['created_by']
+        ?? auth()->id()
+        ?? User::value('id');
+
+    if (!$createdBy) {
+        return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
+    }
+
+    $tenant = Tenant::create([
+        'domain' => $subdomain,
+        'db_name' => $databaseName,
+        'status' => $statusId,
+        'created_by' => $createdBy,
+    ]);
+    
+    // Ensure no data attribute is set
+    unset($tenant->data);
+
+    $tenant->setInternal('db_name', $databaseName);
+    $tenant->save();
+
+    $baseUrl = $this->makeTenantBaseUrl($subdomain);
+
+    return response()->json([
+        'message' => 'Tenant created successfully',
+        'data' => [
+            'id' => $tenant->id,
+            'domain' => $tenant->domain,
+            'subdomain' => $subdomain,
+            'base_url' => $baseUrl,
+        ],
+    ], 201);
+}
 
     private function makeTenantBaseUrl(?string $subdomain): ?string
     {

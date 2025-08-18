@@ -26,13 +26,23 @@ class TenantSeeder extends Seeder
 
         foreach ($tenants as $tenantData) {
             // Create tenant database
-            DB::statement("CREATE DATABASE IF NOT EXISTS {$tenantData['db_name']}");
+            // PostgreSQL doesn't support "IF NOT EXISTS" in CREATE DATABASE statement
+            // We'll need to check if the database exists first
+            try {
+                DB::statement("CREATE DATABASE {$tenantData['db_name']}");
+            } catch (\Exception $e) {
+                // Database might already exist, continue anyway
+            }
             
             // Create tenant record
             $tenant = Tenant::create([
                 'domain' => $tenantData['domain'],
                 'db_name' => $tenantData['db_name'],
                 'status' => null,
+                'organization_id' => null,
+                'created_by' => null,
+                'updated_by' => null,
+                'deleted_by' => null,
             ]);
             
             // No products seeding

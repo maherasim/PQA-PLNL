@@ -9,8 +9,7 @@ use Stancl\Tenancy\Database\Concerns\HasDatabase;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasFactory;
-    use HasDatabase;
+    use HasFactory, HasDatabase;
 
     protected $fillable = [
         'organization_id',
@@ -29,31 +28,36 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'deleted_at' => 'datetime',
     ];
 
-    // Disable stancl default data casting/column expectations
-    protected $castsForJson = [];
-    protected $guarded = ['data'];
-    protected $attributes = [];
+    // Make sure the base model doesn't expect the `data` attribute
+    public $data = [];
 
+    /**
+     * Remove the "data" column when converting to array (e.g., for DB insert/update).
+     */
+    public function toArray()
+    {
+        $array = parent::toArray();
+        unset($array['data']);
+        return $array;
+    }
+
+    /**
+     * Remove `data` from being saved during create/update operations.
+     */
     protected static function booted(): void
     {
         static::creating(function (Tenant $tenant) {
-            if (isset($tenant->attributes['data'])) {
-                unset($tenant->attributes['data']);
-            }
+            unset($tenant->data);
         });
+
         static::updating(function (Tenant $tenant) {
-            if (isset($tenant->attributes['data'])) {
-                unset($tenant->attributes['data']);
-            }
+            unset($tenant->data);
         });
     }
 
-    // Map your existing `database` column to tenancy's database name
-    public function getTenantKeyName(): string
-    {
-        return 'id';
-    }
-
+    /**
+     * Used by stancl/tenancy for identifying the DB name.
+     */
     public function getDatabaseName(): ?string
     {
         return $this->db_name;
@@ -64,6 +68,17 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $this->db_name = $name;
     }
 
+    /**
+     * Optional: you can map tenancy to use a custom key.
+     */
+    public function getTenantKeyName(): string
+    {
+        return 'id'; // UUID assumed
+    }
+
+    /**
+     * Define the custom columns that should be preserved by stancl/tenancy.
+     */
     public static function getCustomColumns(): array
     {
         return [
@@ -80,5 +95,15 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'updated_by',
             'deleted_by',
         ];
+    }
+    
+    /**
+     * Get the domains for the tenant.
+     */
+    public function domains()
+    {
+        // Return an empty relationship since we're storing domain directly in the tenants table
+        // and not using a separate domains table
+        return $this->hasMany(\App\Models\Tenant::class)->where('id', '<', 0); // Always empty
     }
 }

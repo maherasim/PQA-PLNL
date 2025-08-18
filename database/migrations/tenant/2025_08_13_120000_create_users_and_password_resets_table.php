@@ -47,15 +47,15 @@ return new class extends Migration
         });
         
         // Add foreign key constraints
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreign('user_country_id')->references('id')->on('countries');
-            $table->foreign('mobile_country_id')->references('id')->on('countries');
-            $table->foreign('status')->references('id')->on('status');
-            $table->foreign('role')->references('id')->on('roles');
-            $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('updated_by')->references('id')->on('users');
-            $table->foreign('deleted_by')->references('id')->on('users');
-        });
+        // Schema::table('users', function (Blueprint $table) {
+        //     // $table->foreign('user_country_id')->references('id')->on('countries');
+        //     // $table->foreign('mobile_country_id')->references('id')->on('countries');
+        //     // $table->foreign('status')->references('id')->on('status');
+        //     // $table->foreign('role')->references('id')->on('roles');
+        //     // $table->foreign('created_by')->references('id')->on('users');
+        //     // $table->foreign('updated_by')->references('id')->on('users');
+        //     // $table->foreign('deleted_by')->references('id')->on('users');
+        // });
         
         // Create indexes
         Schema::table('users', function (Blueprint $table) {
