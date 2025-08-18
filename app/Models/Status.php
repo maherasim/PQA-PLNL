@@ -10,6 +10,8 @@ class Status extends Model
     use HasFactory;
 
     public $timestamps = true;
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     /**
      * The table associated with the model.

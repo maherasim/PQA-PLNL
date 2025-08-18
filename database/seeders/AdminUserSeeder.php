@@ -12,14 +12,11 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure a default status exists
-        $status = Status::first();
-        if (!$status) {
-            $status = Status::create([
-                'id' => (string) Str::uuid(),
-                'status_name' => 'Active',
-            ]);
-        }
+        // Ensure a default 'Active' status exists with UUID id
+        $status = Status::firstOrCreate(
+            ['status_name' => 'Active'],
+            ['id' => (string) Str::uuid()]
+        );
 
         User::withTrashed()->updateOrCreate(
             ['email' => 'admin@example.com'],

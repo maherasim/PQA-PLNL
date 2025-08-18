@@ -12,6 +12,8 @@ class Permission extends Model
     protected $table = 'permissions';
 
     public $timestamps = true;
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'permissions_name',
