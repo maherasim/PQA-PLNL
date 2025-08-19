@@ -13,6 +13,20 @@ Route::middleware(['api', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain']
     Route::post('/api/forgot-password', [TenantAuthController::class, 'forgotPassword'])->name('tenant.api.forgot');
     Route::post('/api/token-verify', [TenantAuthController::class, 'verifyResetToken'])->name('tenant.api.token.verify');
     Route::post('/api/reset-password', [TenantAuthController::class, 'resetPassword'])->name('tenant.api.reset');
+    // Optional: backend redirect endpoint if you need a web GET to validate and redirect to frontend
+    Route::get('/password/reset/{token}', function ($token) {
+        // This just validates and redirects to FE if configured
+        $hashed = hash('sha256', $token);
+        $record = \DB::table('password_reset_tokens')->where('token', $hashed)->first();
+        if (!$record || now()->diffInMinutes($record->created_at) > 30) {
+            abort(404);
+        }
+        $frontend = config('app.frontend_password_reset_url');
+        if ($frontend) {
+            return redirect(rtrim($frontend, '/') . '?token=' . urlencode($token));
+        }
+        return response()->json(['token' => $token, 'message' => 'Valid token']);
+    })->name('tenant.web.reset.redirect');
     Route::middleware('auth:api')->group(function () {
         Route::get('/api/me', [TenantAuthController::class, 'me'])->name('tenant.api.me');
         Route::post('/api/logout', [TenantAuthController::class, 'logout'])->name('tenant.api.logout');

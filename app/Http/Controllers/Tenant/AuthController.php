@@ -111,8 +111,7 @@ public function register(Request $request)
         $user = User::where('email', $data['email'])->first();
       //  dd(  $user);
         if (!$user) {
-            // Do not reveal whether the email exists
-            return response()->json(['message' => 'If your email exists, a reset token has been sent.']);
+            return response()->json(['message' => 'Email not found'], 404);
         }
 
         // Create or update token in tenant's password_reset_tokens table
@@ -137,9 +136,17 @@ public function register(Request $request)
         $hashed = hash('sha256', $data['token']);
         $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
 
-        return response()->json([
-            'valid' => (bool) $record,
-        ]);
+        if (!$record) {
+            return response()->json(['valid' => false, 'reason' => 'invalid'], 200);
+        }
+
+        // 30 minutes validity
+        $expired = now()->diffInMinutes($record->created_at) > 30;
+        if ($expired) {
+            return response()->json(['valid' => false, 'reason' => 'expired'], 200);
+        }
+
+        return response()->json(['valid' => true]);
     }
 
     public function resetPassword(Request $request)
@@ -153,6 +160,11 @@ public function register(Request $request)
         $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
 
         if (!$record) {
+            return response()->json(['message' => 'Invalid or expired token'], 422);
+        }
+
+        // 30 minutes validity
+        if (now()->diffInMinutes($record->created_at) > 30) {
             return response()->json(['message' => 'Invalid or expired token'], 422);
         }
 
