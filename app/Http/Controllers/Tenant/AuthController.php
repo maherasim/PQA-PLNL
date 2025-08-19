@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
+use App\Notifications\TenantPasswordResetToken;
 
 class AuthController extends Controller
 {
@@ -96,5 +100,74 @@ public function register(Request $request)
     {
         $request->user()->token()->revoke();
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $data['email'])->first();
+        if (!$user) {
+            // Do not reveal whether the email exists
+            return response()->json(['message' => 'If your email exists, a reset token has been sent.']);
+        }
+
+        // Create or update token in tenant's password_reset_tokens table
+        $token = Str::random(64);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            ['token' => hash('sha256', $token), 'created_at' => now()]
+        );
+
+        // Send email notification with the raw token
+        Notification::route('mail', $user->email)->notify(new TenantPasswordResetToken($token));
+
+        return response()->json(['message' => 'If your email exists, a reset token has been sent.']);
+    }
+
+    public function verifyResetToken(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $hashed = hash('sha256', $data['token']);
+        $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
+
+        return response()->json([
+            'valid' => (bool) $record,
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $hashed = hash('sha256', $data['token']);
+        $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Invalid or expired token'], 422);
+        }
+
+        $user = User::where('email', $record->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Invalid token'], 422);
+        }
+
+        $user->password_hash = Hash::make($data['password']);
+        $user->password_last_changed = now();
+        $user->password_change_required = false;
+        $user->save();
+
+        // Delete token after successful reset
+        DB::table('password_reset_tokens')->where('email', $record->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully']);
     }
 }

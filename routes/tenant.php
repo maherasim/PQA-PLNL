@@ -10,6 +10,9 @@ use App\Http\Controllers\Tenant\AuthController as TenantAuthController;
 Route::middleware(['api', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain'])->group(function () {
     Route::post('/api/register', [TenantAuthController::class, 'register'])->name('tenant.api.register');
     Route::post('/api/login', [TenantAuthController::class, 'login'])->name('tenant.api.login');
+    Route::post('/api/forgot-password', [TenantAuthController::class, 'forgotPassword'])->name('tenant.api.forgot');
+    Route::post('/api/token-verify', [TenantAuthController::class, 'verifyResetToken'])->name('tenant.api.token.verify');
+    Route::post('/api/reset-password', [TenantAuthController::class, 'resetPassword'])->name('tenant.api.reset');
     Route::middleware('auth:api')->group(function () {
         Route::get('/api/me', [TenantAuthController::class, 'me'])->name('tenant.api.me');
         Route::post('/api/logout', [TenantAuthController::class, 'logout'])->name('tenant.api.logout');
