@@ -82,26 +82,26 @@ class User extends Authenticatable
     /**
      * Get the country of the user.
      */
-    public function userCountry()
-    {
-        return $this->belongsTo(Country::class, 'user_country_id');
-    }
+    // public function userCountry()
+    // {
+    //     return $this->belongsTo(Country::class, 'user_country_id');
+    // }
 
     /**
      * Get the mobile country of the user.
      */
-    public function mobileCountry()
-    {
-        return $this->belongsTo(Country::class, 'mobile_country_id');
-    }
+    // public function mobileCountry()
+    // {
+    //     return $this->belongsTo(Country::class, 'mobile_country_id');
+    // }
 
     /**
      * Get the status of the user.
      */
-    public function status()
-    {
-        return $this->belongsTo(Status::class);
-    }
+    // public function status()
+    // {
+    //     return $this->belongsTo(Status::class);
+    // }
 
     // No direct role foreign key on users; roles are mapped via user_organization_role_mapping
 

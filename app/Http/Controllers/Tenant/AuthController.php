@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Status;
 use App\Models\Role;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -59,11 +60,18 @@ public function register(Request $request)
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
+        // dd(DB::connection()->getDatabaseName());
 
         $user = User::where('email', $credentials['email'])->first();
-        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
+
+// dd([
+//     'user_found' => $user ? true : false,
+//     'email' => $credentials['email'],
+//     'db' => DB::connection()->getDatabaseName(),
+//     'password_check' => $user ? Hash::check($credentials['password'], $user->password_hash) : null,
+//     'stored_hash' => $user ? $user->password_hash : null,
+// ]);
+
 
         $token = $user->createToken('tenant')->accessToken;
 

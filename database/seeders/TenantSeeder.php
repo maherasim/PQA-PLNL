@@ -37,12 +37,10 @@ class TenantSeeder extends Seeder
             // Create tenant record
             $tenant = Tenant::create([
                 'domain' => $tenantData['domain'],
-                'db_name' => $tenantData['db_name'],
-                'status' => null,
-                'organization_id' => null,
-                'created_by' => null,
-                'updated_by' => null,
-                'deleted_by' => null,
+                'db_name' => $tenantData['db_name'],       
+                'created_by' => '00000000-0000-0000-0000-000000000000',
+                'updated_by' => '00000000-0000-0000-0000-000000000000',
+                'deleted_by' => '00000000-0000-0000-0000-000000000000',
             ]);
             
             // No products seeding

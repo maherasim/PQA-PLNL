@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
+ 
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -102,8 +103,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function domains()
     {
-        // Return an empty relationship since we're storing domain directly in the tenants table
-        // and not using a separate domains table
-        return $this->hasMany(\App\Models\Tenant::class)->where('id', '<', 0); // Always empty
+        // Return a proper Eloquent relationship to the domains table
+        return $this->hasMany(\Stancl\Tenancy\Database\Models\Domain::class, 'tenant_id');
     }
 }
