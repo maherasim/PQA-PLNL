@@ -55,34 +55,37 @@ public function store(Request $request)
     $subdomain = strtolower($validated['subdomain']);
 
     // Ensure no duplicate domain
-    $fullDomain = $subdomain . '.' . env('TENANCY_BASE_DOMAIN');
+    $fullDomain = $subdomain . '.' . config('tenancy.base_domain');
+
+  
     if (Tenant::where('domain', $fullDomain)->exists()) {
         return response()->json(['message' => 'This subdomain is already taken.'], 422);
     }
 
     $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $validated['name'])) . '_' . substr(sha1(uniqid()), 0, 6);
 
-    // Ensure status exists
-    $statusId = Status::value('id');
-    if (!$statusId) {
-        $statusId = Status::create(['status_name' => 'Active'])->id;
-    }
+    // // Ensure status exists
+    // $statusId = Status::value('id');
+    // if (!$statusId) {
+    //     $statusId = Status::create(['status_name' => 'Active'])->id;
+    // }
 
     // Use `created_by` from request, fallback to auth, then fallback to first user
-    $createdBy = $validated['created_by']
-        ?? auth()->id()
-        ?? User::value('id');
+    // $createdBy = $validated['created_by']
+    //     ?? auth()->id()
+    //     ?? User::value('id');
 
-    if (!$createdBy) {
-        return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
-    }
+    // if (!$createdBy) {
+    //     return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
+    // }
 
     // Create tenant
+    dd($fullDomain);
     $tenant = Tenant::create([
         'domain' => $fullDomain, // ✅ store full domain
         'db_name' => $databaseName,
-        'status' => $statusId,
-        'created_by' => $createdBy,
+        
+        // 'created_by' => $createdBy,
     ]);
 
     unset($tenant->data);

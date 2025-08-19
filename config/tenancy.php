@@ -15,6 +15,8 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
+    'base_domain' => env('TENANCY_BASE_DOMAIN', '127.0.0.1.nip.io'),
+
    'central_domains' => array_filter(
     array_map('trim', explode(',', env('CENTRAL_DOMAINS', '')))
 ),

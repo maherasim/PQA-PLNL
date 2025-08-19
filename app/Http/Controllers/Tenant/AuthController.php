@@ -66,8 +66,12 @@ public function register(Request $request)
         ]);
         // dd(DB::connection()->getDatabaseName());
 
+      
         $user = User::where('email', $credentials['email'])->first();
-
+        //dd($user);
+        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 // dd([
 //     'user_found' => $user ? true : false,
 //     'email' => $credentials['email'],
@@ -124,7 +128,7 @@ public function register(Request $request)
         // Send email notification with the raw token
         Notification::route('mail', $user->email)->notify(new TenantPasswordResetToken($token));
 
-        return response()->json(['message' => 'If your email exists, a reset token has been sent.']);
+        return response()->json(['message' => 'A reset token has been sent.']);
     }
 
     public function verifyResetToken(Request $request)
