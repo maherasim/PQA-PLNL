@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
- 
+use App\Jobs\CreateTenantOAuthClients;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -53,6 +53,13 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
         static::updating(function (Tenant $tenant) {
             unset($tenant->data);
+        });
+
+        // Automatically create OAuth clients after tenant is created and database is ready
+        static::created(function (Tenant $tenant) {
+            // Dispatch the job to create OAuth clients with a 5-second delay
+            // This ensures the tenant database is fully ready
+            CreateTenantOAuthClients::dispatch($tenant)->delay(now()->addSeconds(5));
         });
     }
 
