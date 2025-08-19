@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 // Domain model not used; domain stored on tenants table
 
 class TenantController extends Controller
@@ -31,20 +32,29 @@ class TenantController extends Controller
 
         // Ensure subdomain is unique in tenants table
         if (\App\Models\Tenant::where('domain', $subdomain)->exists()) {
-            return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
-        }
-dd( $subdomain);
-        $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name)) . '_' . substr(sha1(uniqid()), 0, 6);
- 
-        $tenant = Tenant::create([
-            'domain' => $request->name,
-            'db_name' => $databaseName,
-            'status' => null,
-        ]);
+           return back()->withErrors(['subdomain' => 'This subdomain is already taken.'])->withInput();
+       }
+       
+       $databaseName = 'tenant_' . strtolower(str_replace([' ', '-'], '_', $request->name)) . '_' . substr(sha1(uniqid()), 0, 6);
 
-        // Set the internal db_name attribute to ensure the correct database is used
-        $tenant->setInternal('db_name', $databaseName);
-        $tenant->save();
+       $tenant = Tenant::create([
+           'domain' => $subdomain,
+           'db_name' => $databaseName,
+           'status' => null,
+       ]);
+
+       // Create domain entry for the tenant
+       DB::table('domains')->insert([
+           'id' => \Illuminate\Support\Str::uuid(),
+           'domain' => $subdomain,
+           'tenant_id' => $tenant->id,
+           'created_at' => now(),
+           'updated_at' => now(),
+       ]);
+
+       // Set the internal db_name attribute to ensure the correct database is used
+       $tenant->setInternal('db_name', $databaseName);
+       $tenant->save();
 
         // Domain saved on tenants table; nothing to create
 

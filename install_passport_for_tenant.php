@@ -7,53 +7,34 @@ $app = require_once 'bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use App\Models\Tenant;
-use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-echo "Starting Passport installation for tenant 'asim'...\n";
+echo "Starting Passport installation for all tenants...\n";
 
-try {
-    // Find the tenant by ID (we know it's d815f98d-82df-4e2f-95a6-0a66b30d0c62)
-    $tenantId = 'd815f98d-82df-4e2f-95a6-0a66b30d0c62';
-    $tenant = Tenant::find($tenantId);
-    
-    if (!$tenant) {
-        echo "ERROR: Tenant with ID '{$tenantId}' not found!\n";
-        echo "Available tenants:\n";
-        $allTenants = Tenant::all();
-        foreach ($allTenants as $t) {
-            echo "- ID: {$t->id}, Domain: {$t->domain}\n";
-        }
-        exit(1);
-    }
-    
-    echo "Found tenant: ID {$tenant->id}, Domain: {$tenant->domain}\n";
-    
-    // Initialize tenancy
+$allTenants = Tenant::all();
+
+foreach ($allTenants as $tenant) {
+    echo "\n--- Processing Tenant: ID {$tenant->id}, Domain: {$tenant->domain} ---\n";
+
     tenancy()->initialize($tenant);
-    
+
     try {
-        echo "Tenancy initialized. Installing Passport...\n";
-        
         // Check if oauth_clients table exists
         if (!Schema::hasTable('oauth_clients')) {
-            echo "ERROR: oauth_clients table not found in tenant database!\n";
-            echo "Please run tenant migrations first.\n";
-            exit(1);
+            echo "⚠️ Skipped: oauth_clients table not found in tenant database. Run migrations first.\n";
+            tenancy()->end();
+            continue;
         }
-        
-        // Check if personal access client already exists
+
+        // Personal Access Client
         $personalClient = DB::table('oauth_clients')
             ->where('personal_access_client', true)
             ->first();
-            
+
         if ($personalClient) {
-            echo "Personal access client already exists (ID: {$personalClient->id})\n";
+            echo "✔ Personal access client already exists (ID: {$personalClient->id})\n";
         } else {
-            echo "Creating personal access client...\n";
-            
-            // Create personal access client
             $clientId = DB::table('oauth_clients')->insertGetId([
                 'user_id' => null,
                 'name' => 'Laravel Personal Access Client',
@@ -66,28 +47,24 @@ try {
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            
-            // Create personal access client record
+
             DB::table('oauth_personal_access_clients')->insert([
                 'client_id' => $clientId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            
-            echo "Personal access client created with ID: {$clientId}\n";
+
+            echo "✅ Created personal access client (ID: {$clientId})\n";
         }
-        
-        // Check if password client exists
+
+        // Password Client
         $passwordClient = DB::table('oauth_clients')
             ->where('password_client', true)
             ->first();
-            
+
         if ($passwordClient) {
-            echo "Password client already exists (ID: {$passwordClient->id})\n";
+            echo "✔ Password client already exists (ID: {$passwordClient->id})\n";
         } else {
-            echo "Creating password client...\n";
-            
-            // Create password client
             $clientId = DB::table('oauth_clients')->insertGetId([
                 'user_id' => null,
                 'name' => 'Laravel Password Grant Client',
@@ -100,21 +77,15 @@ try {
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            
-            echo "Password client created with ID: {$clientId}\n";
+
+            echo "✅ Created password client (ID: {$clientId})\n";
         }
-        
-        echo "Passport installation completed successfully!\n";
-        
+
+    } catch (Exception $e) {
+        echo "❌ ERROR for tenant {$tenant->id}: {$e->getMessage()}\n";
     } finally {
-        // End tenancy
         tenancy()->end();
     }
-    
-} catch (Exception $e) {
-    echo "ERROR: " . $e->getMessage() . "\n";
-    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
-    exit(1);
 }
 
-echo "Done!\n";
+echo "\n🎉 Passport installation completed for all tenants!\n";
