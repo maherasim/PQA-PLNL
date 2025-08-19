@@ -14,11 +14,12 @@ use Illuminate\Support\Facades\Schema;
 echo "Starting Passport installation for tenant 'asim'...\n";
 
 try {
-    // Find the tenant by domain
-    $tenant = Tenant::where('domain', 'asim.127.0.0.1.nip.io')->first();
+    // Find the tenant by ID (we know it's d815f98d-82df-4e2f-95a6-0a66b30d0c62)
+    $tenantId = 'd815f98d-82df-4e2f-95a6-0a66b30d0c62';
+    $tenant = Tenant::find($tenantId);
     
     if (!$tenant) {
-        echo "ERROR: Tenant with domain 'asim.127.0.0.1.nip.io' not found!\n";
+        echo "ERROR: Tenant with ID '{$tenantId}' not found!\n";
         echo "Available tenants:\n";
         $allTenants = Tenant::all();
         foreach ($allTenants as $t) {
