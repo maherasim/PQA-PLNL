@@ -54,7 +54,9 @@ public function store(Request $request)
 
     $subdomain = strtolower($validated['subdomain']);
 
-    if (Tenant::where('domain', $subdomain)->exists()) {
+    // Ensure no duplicate domain
+    $fullDomain = $subdomain . '.' . env('TENANCY_BASE_DOMAIN');
+    if (Tenant::where('domain', $fullDomain)->exists()) {
         return response()->json(['message' => 'This subdomain is already taken.'], 422);
     }
 
@@ -75,18 +77,20 @@ public function store(Request $request)
         return response()->json(['message' => 'No users exist to set created_by. Seed an admin user first.'], 422);
     }
 
+    // Create tenant
     $tenant = Tenant::create([
-        'domain' => $subdomain,
+        'domain' => $fullDomain, // ✅ store full domain
         'db_name' => $databaseName,
         'status' => $statusId,
         'created_by' => $createdBy,
     ]);
-    
+
     unset($tenant->data);
 
+    // Insert into domains table
     DB::table('domains')->insert([
         'id' => \Illuminate\Support\Str::uuid(),
-        'domain' => $subdomain,
+        'domain' => $fullDomain, // ✅ store full domain (subdomain + base)
         'tenant_id' => $tenant->id,
         'created_at' => now(),
         'updated_at' => now(),
@@ -150,6 +154,7 @@ public function store(Request $request)
         tenancy()->end();
     }
 
+    // ✅ Generate full base URL
     $baseUrl = $this->makeTenantBaseUrl($subdomain);
 
     return response()->json([
@@ -163,20 +168,32 @@ public function store(Request $request)
     ], 201);
 }
 
+/**
+ * Build tenant base URL
+ */
+protected function makeTenantBaseUrl(string $subdomain): string
+{
+    $baseDomain = env('TENANCY_BASE_DOMAIN');
+    $appPort = parse_url(config('app.url'), PHP_URL_PORT); // e.g. 8000 in local
 
-    private function makeTenantBaseUrl(?string $subdomain): ?string
-    {
-        if (!$subdomain) {
-            return null;
-        }
+    return "http://{$subdomain}.{$baseDomain}" . ($appPort ? ":{$appPort}" : '');
+}
 
-        $baseDomain = env('TENANCY_BASE_DOMAIN', '127.0.0.1.nip.io');
-        $appUrl = config('app.url');
-        $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'http';
-        $port = parse_url($appUrl, PHP_URL_PORT);
 
-        $host = $subdomain . '.' . $baseDomain;
 
-        return $scheme . '://' . $host . ($port ? ':' . $port : '');
-    }
+    // private function makeTenantBaseUrl(?string $subdomain): ?string
+    // {
+    //     if (!$subdomain) {
+    //         return null;
+    //     }
+
+    //     $baseDomain = env('TENANCY_BASE_DOMAIN', '127.0.0.1.nip.io');
+    //     $appUrl = config('app.url');
+    //     $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'http';
+    //     $port = parse_url($appUrl, PHP_URL_PORT);
+
+    //     $host = $subdomain . '.' . $baseDomain;
+
+    //     return $scheme . '://' . $host . ($port ? ':' . $port : '');
+    // }
 }

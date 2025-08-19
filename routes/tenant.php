@@ -20,6 +20,6 @@ Route::middleware(['api', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain']
 });
 
 // Tenant web routes (session-based UI)
-Route::middleware(['web', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain'])->group(function () {
-    // no product routes
-});
+// Route::middleware(['web', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain'])->group(function () {
+//     // no product routes
+// });

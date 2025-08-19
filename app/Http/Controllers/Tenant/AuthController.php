@@ -109,6 +109,7 @@ public function register(Request $request)
         ]);
 
         $user = User::where('email', $data['email'])->first();
+      //  dd(  $user);
         if (!$user) {
             // Do not reveal whether the email exists
             return response()->json(['message' => 'If your email exists, a reset token has been sent.']);
