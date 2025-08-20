@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class AdminAuthController extends Controller
 {
@@ -19,7 +20,9 @@ class AdminAuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
+        $usePasswordHash = Schema::hasColumn('users', 'password_hash');
+        $storedHash = $usePasswordHash ? ($user->password_hash ?? null) : ($user->password ?? null);
+        if (!$user || !$storedHash || !Hash::check($credentials['password'], $storedHash)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 

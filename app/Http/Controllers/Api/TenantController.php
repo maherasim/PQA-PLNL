@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 // Domain model not used; domain stored on tenants table
 
 class TenantController extends Controller
@@ -149,15 +150,14 @@ public function store(Request $request)
     $fullName = $validated['full_name'] ?? $validated['name'];
     $centralUser = User::where('email', $validated['email'])->first();
     if (!$centralUser) {
+        $passwordField = Schema::hasColumn('users', 'password_hash') ? 'password_hash' : 'password';
         $centralUser = User::create([
             'full_name' => $fullName,
             'email' => $validated['email'],
-            'password_hash' => Hash::make($validated['password']),
+            $passwordField => Hash::make($validated['password']),
             'cvb_id' => 'CVB' . strtoupper(uniqid()),
             'password_created_at' => now(),
             'password_last_changed' => now(),
-            // Optionally set status if available
-            // 'status' => Status::where('status_name', 'Active')->value('id')
         ]);
     }
 

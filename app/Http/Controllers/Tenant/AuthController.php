@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use App\Notifications\TenantPasswordResetToken;
 use Stancl\Tenancy\Tenancy;
+use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
@@ -41,7 +42,9 @@ public function register(Request $request)
 
         try {
             $user = User::where('email', $credentials['email'])->first();
-            if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
+            $usePasswordHash = Schema::hasColumn('users', 'password_hash');
+            $storedHash = $usePasswordHash ? ($user->password_hash ?? null) : ($user->password ?? null);
+            if (!$user || !$storedHash || !Hash::check($credentials['password'], $storedHash)) {
                 return response()->json(['message' => 'Invalid credentials'], 401);
             }
 
