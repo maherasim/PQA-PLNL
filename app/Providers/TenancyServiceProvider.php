@@ -96,6 +96,11 @@ class TenancyServiceProvider extends ServiceProvider
 
         $this->makeTenancyMiddlewareHighestPriority();
         
+        // Make Passport resolve tenant context from token name convention
+        \Laravel\Passport\Passport::tokensCan([
+            // Keep default scopes
+        ]);
+        
         // Set custom database name generator to use the database column from tenant records
         \Stancl\Tenancy\DatabaseConfig::generateDatabaseNamesUsing(function ($tenant) {
             return $tenant->getDatabaseName();

@@ -50,8 +50,8 @@ public function store(Request $request)
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'subdomain' => 'required|string|alpha_dash|max:63',
-        'email' => 'required|email',
-        'password' => 'required|string|min:8',
+        'email' => 'required|email', // central user email
+        'password' => 'required|string|min:8', // central user password
         'full_name' => 'nullable|string|max:100',
         'created_by' => 'nullable|uuid|exists:users,id',
     ]);
@@ -87,7 +87,7 @@ public function store(Request $request)
     $tenant->setInternal('db_name', $databaseName);
     $tenant->save();
 
-    // Initialize tenant DB before Passport setup and user creation
+    // Initialize tenant DB before Passport setup
     tenancy()->initialize($tenant);
 
     try {
@@ -140,27 +140,25 @@ public function store(Request $request)
             }
         }
 
-        // Create initial user in tenant DB
-        $fullName = $validated['full_name'] ?? $validated['name'];
-
-        // Ensure users table exists before attempting to create
-        if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
-            // Optional: prevent duplicate email within tenant
-            $existing = User::where('email', $validated['email'])->first();
-            if ($existing) {
-                return response()->json(['message' => 'Email already exists for this tenant.'], 422);
-            }
-
-            User::create([
-                'full_name' => $fullName,
-                'email' => $validated['email'],
-                'password_hash' => Hash::make($validated['password']),
-                'password_created_at' => now(),
-                'password_last_changed' => now(),
-            ]);
-        }
+        // Do NOT create user in tenant DB; create in central DB only
     } finally {
         tenancy()->end();
+    }
+
+    // Create or ensure the central user exists using the provided credentials
+    $fullName = $validated['full_name'] ?? $validated['name'];
+    $centralUser = User::where('email', $validated['email'])->first();
+    if (!$centralUser) {
+        $centralUser = User::create([
+            'full_name' => $fullName,
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
+            'cvb_id' => 'CVB' . strtoupper(uniqid()),
+            'password_created_at' => now(),
+            'password_last_changed' => now(),
+            // Optionally set status if available
+            // 'status' => Status::where('status_name', 'Active')->value('id')
+        ]);
     }
 
     // Build tenant base URL

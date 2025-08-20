@@ -14,47 +14,13 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use App\Notifications\TenantPasswordResetToken;
+use Stancl\Tenancy\Tenancy;
 
 class AuthController extends Controller
 {
 public function register(Request $request)
 {
-    $data = $request->validate([
-        'full_name' => 'required|string|max:100',
-        'email' => 'required|email|unique:users,email',
-        'mobile_number' => 'nullable|string|max:50|unique:users,mobile_number',
-        'password' => 'required|string|min:8',
-        // 'mobile_country_id' => 'nullable|exists:countries,id',
-        // 'user_country_id' => 'nullable|exists:countries,id',
-    ]);
-
-    // Fetch default status (e.g. 'Active')
-    // $defaultStatus = Status::first();
-
-    // Roles are managed elsewhere, so not set here
-    $user = User::create([
-        'full_name' => $data['full_name'],
-        'email' => $data['email'],
-        'mobile_number' => $data['mobile_number'] ?? null,
-        // 'mobile_country_id' => $data['mobile_country_id'] ?? null,
-        // 'user_country_id' => $data['user_country_id'] ?? null,
-        'password_hash' => Hash::make($data['password']),
-        'cvb_id' => 'CVB' . strtoupper(uniqid()),
-        // 'status' => $defaultStatus ? $defaultStatus->id : null,
-        'password_created_at' => now(),
-        'password_last_changed' => now(),
-        // Initialize other optional fields as needed
-    ]);
-
-    return response()->json([
-        'message' => 'Registered successfully',
-        'user' => [
-            'id' => $user->id,
-            'full_name' => $user->full_name,
-            'email' => $user->email,
-            'cvb_id' => $user->cvb_id,
-        ]
-    ], 201);
+    return response()->json(['message' => 'Registration is managed centrally.'], 405);
 }
 
 
@@ -64,35 +30,42 @@ public function register(Request $request)
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
-        // dd(DB::connection()->getDatabaseName());
 
-      
-        $user = User::where('email', $credentials['email'])->first();
-        //dd($user);
-        if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        // Capture current tenant from subdomain, then switch to central DB for auth & token issuance
+        $currentTenant = tenant();
+        if (!$currentTenant) {
+            return response()->json(['message' => 'Tenant context missing. Use tenant subdomain for login.'], 400);
         }
-// dd([
-//     'user_found' => $user ? true : false,
-//     'email' => $credentials['email'],
-//     'db' => DB::connection()->getDatabaseName(),
-//     'password_check' => $user ? Hash::check($credentials['password'], $user->password_hash) : null,
-//     'stored_hash' => $user ? $user->password_hash : null,
-// ]);
 
+        tenancy()->end();
 
-        $token = $user->createToken('tenant')->accessToken;
+        try {
+            $user = User::where('email', $credentials['email'])->first();
+            if (!$user || !Hash::check($credentials['password'], $user->password_hash)) {
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
 
-        return response()->json([
-            'token_type' => 'Bearer',
-            'access_token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'full_name' => $user->full_name,
-                'email' => $user->email,
-                'cvb_id' => $user->cvb_id,
-            ],
-        ]);
+            // Encode tenant id (and domain) in token name so middleware can resolve tenancy from the token later
+            $tokenName = 'tenant:' . $currentTenant->id . ';domain:' . $currentTenant->domain;
+            $personalToken = $user->createToken($tokenName);
+            $accessToken = $personalToken->accessToken;
+
+            return response()->json([
+                'token_type' => 'Bearer',
+                'access_token' => $accessToken,
+                'user' => [
+                    'id' => $user->id,
+                    'full_name' => $user->full_name,
+                    'email' => $user->email,
+                    'cvb_id' => $user->cvb_id,
+                ],
+            ]);
+        } finally {
+            // Restore tenant context for the remainder of the request lifecycle if needed
+            if ($currentTenant) {
+                tenancy()->initialize($currentTenant);
+            }
+        }
     }
 
     public function me(Request $request)

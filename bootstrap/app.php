@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            
+            'ensure.tenant.by.token' => App\Http\Middleware\EnsureTenantDatabase::class,
         ]);
         
         // stancl/tenancy will handle DB switching via route middleware; no custom web append needed.

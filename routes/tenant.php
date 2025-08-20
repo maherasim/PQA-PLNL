@@ -27,7 +27,7 @@ Route::middleware(['api', 'Stancl\Tenancy\Middleware\InitializeTenancyByDomain']
         }
         return response()->json(['token' => $token, 'message' => 'Valid token']);
     })->name('tenant.web.reset.redirect');
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:api', 'ensure.tenant.by.token'])->group(function () {
         Route::get('/api/me', [TenantAuthController::class, 'me'])->name('tenant.api.me');
         Route::post('/api/logout', [TenantAuthController::class, 'logout'])->name('tenant.api.logout');
     });
