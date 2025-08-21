@@ -148,19 +148,17 @@ public function store(Request $request)
 
     // Create or ensure the central user exists using the provided credentials
     $fullName = $validated['full_name'] ?? $validated['name'];
-    $centralUser = User::where('email', $validated['email'])->first();
-    if (!$centralUser) {
-        $passwordField = Schema::hasColumn('users', 'password_hash') ? 'password_hash' : 'password';
-        $centralUser = User::create([
-            'full_name' => $fullName,
-            'email' => $validated['email'],
-            $passwordField => Hash::make($validated['password']),
-            'cvb_id' => 'CVB' . strtoupper(uniqid()),
-            'password_created_at' => now(),
-            'password_last_changed' => now(),
-        ]);
-    }
 
+     
+     
+        
+        $centralUser = User::create([
+            'name' => $fullName,
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']), 
+        ]);
+    
+// dd($centralUser);
     // Build tenant base URL
     $baseUrl = $this->makeTenantBaseUrl($subdomain);
 
