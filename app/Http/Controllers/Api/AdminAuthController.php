@@ -35,7 +35,10 @@ class AdminAuthController extends Controller
 		// Ensure a personal access client exists in the central database for the 'users' provider
 		$this->ensurePersonalAccessClientExists();
 
-		// Resolve tenant context: preference order -> tenant_id, subdomain, current tenant()
+		// Resolve tenant context automatically:
+		// 1) Explicit params (tenant_id/subdomain)
+		// 2) Request host tenant()
+		// 3) User's default_tenant_id (central login without domain)
 		$forcedTenant = null;
 		if (!empty($credentials['tenant_id'])) {
 			$forcedTenant = Tenant::find($credentials['tenant_id']);
@@ -44,8 +47,16 @@ class AdminAuthController extends Controller
 			$forcedTenant = Tenant::where('domain', $domain)->first();
 		}
 
-		$tenantId = $forcedTenant?->id ?: tenant()?->id;
-		$tenantDomain = $forcedTenant?->domain ?: tenant()?->domain;
+		$currentTenant = $forcedTenant ?: tenant();
+		if (!$currentTenant && Schema::hasColumn('users', 'default_tenant_id')) {
+			$defaultTenantId = DB::table('users')->where('id', $user->id)->value('default_tenant_id');
+			if ($defaultTenantId) {
+				$currentTenant = Tenant::find($defaultTenantId);
+			}
+		}
+
+		$tenantId = $currentTenant?->id;
+		$tenantDomain = $currentTenant?->domain;
 		$tokenName = $tenantId ? ("tenant:".$tenantId.";domain:".$tenantDomain) : 'admin';
 
 		$token = $user->createToken($tokenName)->accessToken;

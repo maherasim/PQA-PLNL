@@ -95,14 +95,20 @@ public function store(Request $request)
     // Create or ensure the central user exists using the provided credentials
     $fullName = $validated['full_name'] ?? $validated['name'];
 
-         
-         
-        
+            
+            
+            
         $centralUser = User::create([
             'name' => $fullName,
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']), 
         ]);
+
+    // Set default tenant for this user
+    DB::table('users')->where('id', $centralUser->id)->update([
+        'default_tenant_id' => $tenant->id,
+        'updated_at' => now(),
+    ]);
     
 // dd($centralUser);
     // Build tenant base URL
