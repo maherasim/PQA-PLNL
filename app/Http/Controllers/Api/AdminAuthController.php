@@ -32,7 +32,12 @@ class AdminAuthController extends Controller
 		// Ensure a personal access client exists in the central database for the 'users' provider
 		$this->ensurePersonalAccessClientExists();
 
-		$token = $user->createToken('admin')->accessToken;
+		// Build a token name containing tenant info if a tenant was identified earlier in request lifecycle
+		$tenantId = tenant()?->id;
+		$tenantDomain = tenant()?->domain;
+		$tokenName = $tenantId ? ("tenant:".$tenantId.";domain:".$tenantDomain) : 'admin';
+
+		$token = $user->createToken($tokenName)->accessToken;
 
 		return response()->json([
 			'token_type' => 'Bearer',
@@ -78,7 +83,8 @@ class AdminAuthController extends Controller
 			$clientId = DB::table('oauth_clients')->insertGetId([
 				'user_id' => null,
 				'name' => 'Laravel Personal Access Client',
-				'secret' => Str::random(40),
+				'agent' => request()->userAgent(),
+				'ip_address' => request()->ip(),
 				'provider' => 'users',
 				'redirect' => 'http://localhost',
 				'personal_access_client' => true,
