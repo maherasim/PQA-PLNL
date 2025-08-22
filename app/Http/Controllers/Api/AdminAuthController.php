@@ -72,6 +72,22 @@ class AdminAuthController extends Controller
 		return response()->json(['message' => 'Logged out']);
 	}
 
+	public function tenantFromToken(Request $request)
+	{
+		$currentTenant = tenant();
+		if (!$currentTenant) {
+			return response()->json(['tenant' => null, 'message' => 'No tenant resolved from token or host'], 200);
+		}
+
+		return response()->json([
+			'tenant' => [
+				'id' => $currentTenant->id,
+				'domain' => $currentTenant->domain,
+				'db_name' => $currentTenant->db_name,
+			],
+		]);
+	}
+
 	private function ensurePersonalAccessClientExists(): void
 	{
 		if (!Schema::hasTable('oauth_clients') || !Schema::hasTable('oauth_personal_access_clients')) {

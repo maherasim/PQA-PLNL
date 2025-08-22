@@ -14,6 +14,7 @@ Route::middleware(['ensure.tenant.by.token'])->group(function () {
     Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('login');
     Route::middleware('auth:api')->group(function () {
         Route::get('/admin/me', [AdminAuthController::class, 'me'])->name('api.admin.me');
+        Route::get('/admin/tenant', [AdminAuthController::class, 'tenantFromToken'])->name('api.admin.tenant');
         Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('api.admin.logout');
     });
 });
