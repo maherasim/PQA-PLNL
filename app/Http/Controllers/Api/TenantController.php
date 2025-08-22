@@ -104,11 +104,13 @@ public function store(Request $request)
             'password' => Hash::make($validated['password']), 
         ]);
 
-    // Set default tenant for this user
-    DB::table('users')->where('id', $centralUser->id)->update([
-        'default_tenant_id' => $tenant->id,
-        'updated_at' => now(),
-    ]);
+    // Set default tenant for this user if column exists
+    if (Schema::hasColumn('users', 'default_tenant_id')) {
+        DB::table('users')->where('id', $centralUser->id)->update([
+            'default_tenant_id' => $tenant->id,
+            'updated_at' => now(),
+        ]);
+    }
     
 // dd($centralUser);
     // Build tenant base URL
