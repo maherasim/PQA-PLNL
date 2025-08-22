@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +20,8 @@ class AdminAuthController extends Controller
 		$credentials = $request->validate([
 			'email' => 'required|email',
 			'password' => 'required|string',
+			'tenant_id' => 'nullable|string',
+			'subdomain' => 'nullable|string',
 		]);
 
 		$user = User::where('email', $credentials['email'])->first();
@@ -32,9 +35,17 @@ class AdminAuthController extends Controller
 		// Ensure a personal access client exists in the central database for the 'users' provider
 		$this->ensurePersonalAccessClientExists();
 
-		// Build a token name containing tenant info if a tenant was identified earlier in request lifecycle
-		$tenantId = tenant()?->id;
-		$tenantDomain = tenant()?->domain;
+		// Resolve tenant context: preference order -> tenant_id, subdomain, current tenant()
+		$forcedTenant = null;
+		if (!empty($credentials['tenant_id'])) {
+			$forcedTenant = Tenant::find($credentials['tenant_id']);
+		} elseif (!empty($credentials['subdomain'])) {
+			$domain = rtrim($credentials['subdomain'], '.').'.'.config('tenancy.base_domain');
+			$forcedTenant = Tenant::where('domain', $domain)->first();
+		}
+
+		$tenantId = $forcedTenant?->id ?: tenant()?->id;
+		$tenantDomain = $forcedTenant?->domain ?: tenant()?->domain;
 		$tokenName = $tenantId ? ("tenant:".$tenantId.";domain:".$tenantDomain) : 'admin';
 
 		$token = $user->createToken($tokenName)->accessToken;
@@ -83,9 +94,8 @@ class AdminAuthController extends Controller
 			$clientId = DB::table('oauth_clients')->insertGetId([
 				'user_id' => null,
 				'name' => 'Laravel Personal Access Client',
-				'agent' => request()->userAgent(),
-				'ip_address' => request()->ip(),
 				'provider' => 'users',
+				'secret' => Str::random(40),
 				'redirect' => 'http://localhost',
 				'personal_access_client' => true,
 				'password_client' => false,
