@@ -78,7 +78,7 @@ class AdminAuthController extends Controller
 			$clientId = DB::table('oauth_clients')->insertGetId([
 				'user_id' => null,
 				'name' => 'Laravel Personal Access Client',
-				' secret' => Str::random(40),
+				'secret' => Str::random(40),
 				'provider' => 'users',
 				'redirect' => 'http://localhost',
 				'personal_access_client' => true,
