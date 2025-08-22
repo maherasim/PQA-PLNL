@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminAuthController extends Controller
 {
@@ -58,18 +59,26 @@ class AdminAuthController extends Controller
 	private function ensurePersonalAccessClientExists(): void
 	{
 		if (!Schema::hasTable('oauth_clients') || !Schema::hasTable('oauth_personal_access_clients')) {
+			// Attempt to run pending migrations so required tables exist
+			Artisan::call('migrate', ['--force' => true]);
+		}
+
+		if (!Schema::hasTable('oauth_clients')) {
 			return;
 		}
 
 		$personalClient = DB::table('oauth_clients')
 			->where('personal_access_client', true)
+			->where(function ($q) {
+				$q->whereNull('provider')->orWhere('provider', 'users');
+			})
 			->first();
 
 		if (!$personalClient) {
 			$clientId = DB::table('oauth_clients')->insertGetId([
 				'user_id' => null,
 				'name' => 'Laravel Personal Access Client',
-				'secret' => Str::random(40),
+				' secret' => Str::random(40),
 				'provider' => 'users',
 				'redirect' => 'http://localhost',
 				'personal_access_client' => true,
@@ -79,23 +88,27 @@ class AdminAuthController extends Controller
 				'updated_at' => now(),
 			]);
 
-			DB::table('oauth_personal_access_clients')->insert([
-				'client_id' => $clientId,
-				'created_at' => now(),
-				'updated_at' => now(),
-			]);
+			if (Schema::hasTable('oauth_personal_access_clients')) {
+				DB::table('oauth_personal_access_clients')->insert([
+					'client_id' => $clientId,
+					'created_at' => now(),
+					'updated_at' => now(),
+				]);
+			}
 			return;
 		}
 
-		$centralPacRow = DB::table('oauth_personal_access_clients')
-			->where('client_id', $personalClient->id)
-			->first();
-		if (!$centralPacRow) {
-			DB::table('oauth_personal_access_clients')->insert([
-				'client_id' => $personalClient->id,
-				'created_at' => now(),
-				'updated_at' => now(),
-			]);
+		if (Schema::hasTable('oauth_personal_access_clients')) {
+			$centralPacRow = DB::table('oauth_personal_access_clients')
+				->where('client_id', $personalClient->id)
+				->first();
+			if (!$centralPacRow) {
+				DB::table('oauth_personal_access_clients')->insert([
+					'client_id' => $personalClient->id,
+					'created_at' => now(),
+					'updated_at' => now(),
+				]);
+			}
 		}
 	}
 }
