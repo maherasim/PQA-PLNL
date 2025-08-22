@@ -203,7 +203,7 @@ SQL);
                     $table->uuid('organization_id')->nullable();
                 }
                 if (!Schema::hasColumn('tenants', 'status')) {
-                    $table->uuid('status');
+                    $table->uuid('status')->nullable();
                 }
                 if (!Schema::hasColumn('tenants', 'domain')) {
                     $table->string('domain', 255)->nullable();
