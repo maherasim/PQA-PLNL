@@ -10,8 +10,12 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
 
 echo "Starting Passport installation for central and all tenants...\n";
+
+// Ensure central migrations are up to date so required tables exist
+Artisan::call('migrate', ['--force' => true]);
 
 /**
  * Setup Passport Clients for the Central DB
