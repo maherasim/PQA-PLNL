@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 // Domain model not used; domain stored on tenants table
 
 class TenantController extends Controller
@@ -88,69 +89,14 @@ public function store(Request $request)
     $tenant->setInternal('db_name', $databaseName);
     $tenant->save();
 
-    // Initialize tenant DB before Passport setup
-    tenancy()->initialize($tenant);
-
-    try {
-        // Ensure OAuth clients exist in tenant DB
-        if (\Illuminate\Support\Facades\Schema::hasTable('oauth_clients')) {
-            // Create Personal Access Client
-            $personalClient = DB::table('oauth_clients')
-                ->where('personal_access_client', true)
-                ->first();
-
-            if (!$personalClient) {
-                $clientId = DB::table('oauth_clients')->insertGetId([
-                    'user_id' => null,
-                    'name' => 'Laravel Personal Access Client',
-                    'secret' => \Illuminate\Support\Str::random(40),
-                    'provider' => 'users',
-                    'redirect' => 'http://localhost',
-                    'personal_access_client' => true,
-                    'password_client' => false,
-                    'revoked' => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                DB::table('oauth_personal_access_clients')->insert([
-                    'client_id' => $clientId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            // Create Password Grant Client
-            $passwordClient = DB::table('oauth_clients')
-                ->where('password_client', true)
-                ->first();
-
-            if (!$passwordClient) {
-                DB::table('oauth_clients')->insert([
-                    'user_id' => null,
-                    'name' => 'Laravel Password Grant Client',
-                    'secret' => \Illuminate\Support\Str::random(40),
-                    'provider' => 'users',
-                    'redirect' => 'http://localhost',
-                    'personal_access_client' => false,
-                    'password_client' => true,
-                    'revoked' => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-
-        // Do NOT create user in tenant DB; create in central DB only
-    } finally {
-        tenancy()->end();
-    }
+    // Ensure central OAuth clients exist (not in tenant DB)
+    $this->ensureCentralOAuthClientsExist();
 
     // Create or ensure the central user exists using the provided credentials
     $fullName = $validated['full_name'] ?? $validated['name'];
 
-     
-     
+         
+         
         
         $centralUser = User::create([
             'name' => $fullName,
@@ -184,8 +130,69 @@ protected function makeTenantBaseUrl(string $subdomain): string
     return "http://{$subdomain}.{$baseDomain}" . ($appPort ? ":{$appPort}" : '');
 }
 
+    private function ensureCentralOAuthClientsExist(): void
+    {
+        if (!Schema::hasTable('oauth_clients') || !Schema::hasTable('oauth_personal_access_clients')) {
+            return;
+        }
+
+        $personalClient = DB::table('oauth_clients')
+            ->where('personal_access_client', true)
+            ->first();
+
+        if (!$personalClient) {
+            $personalClientId = DB::table('oauth_clients')->insertGetId([
+                'user_id' => null,
+                'name' => 'Laravel Personal Access Client',
+                'secret' => Str::random(40),
+                'provider' => 'users',
+                'redirect' => 'http://localhost',
+                'personal_access_client' => true,
+                'password_client' => false,
+                'revoked' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('oauth_personal_access_clients')->insert([
+                'client_id' => $personalClientId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            $pacRow = DB::table('oauth_personal_access_clients')
+                ->where('client_id', $personalClient->id)
+                ->first();
+            if (!$pacRow) {
+                DB::table('oauth_personal_access_clients')->insert([
+                    'client_id' => $personalClient->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        $passwordClient = DB::table('oauth_clients')
+            ->where('password_client', true)
+            ->first();
+        if (!$passwordClient) {
+            DB::table('oauth_clients')->insert([
+                'user_id' => null,
+                'name' => 'Laravel Password Grant Client',
+                'secret' => Str::random(40),
+                'provider' => 'users',
+                'redirect' => 'http://localhost',
+                'personal_access_client' => false,
+                'password_client' => true,
+                'revoked' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
 
 
+    
     // private function makeTenantBaseUrl(?string $subdomain): ?string
     // {
     //     if (!$subdomain) {
