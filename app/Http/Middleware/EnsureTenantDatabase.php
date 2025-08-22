@@ -18,37 +18,41 @@ class EnsureTenantDatabase
 
     public function handle(Request $request, Closure $next)
     {
-        // If tenancy already initialized by domain, continue
+        // If tenancy already initialized by earlier middleware, continue
         if (tenant()) {
             return $next($request);
         }
 
-        // Attempt to resolve tenant from bearer token name convention set at login: 'tenant:{id};domain:{domain}'
+        // 1) Try to resolve tenant by request host (domain-based login, e.g., nasir.127.0.0.1.nip.io)
+        $host = $request->getHost();
+        if ($host) {
+            $tenant = Tenant::where('domain', $host)->first();
+            if ($tenant) {
+                tenancy()->initialize($tenant);
+                return $next($request);
+            }
+        }
+
+        // 2) Fallback: resolve tenant from bearer token name convention set at login: 'tenant:{id};domain:{domain}'
         $bearer = $request->bearerToken();
-        if (!$bearer) {
-            return $next($request);
-        }
+        if ($bearer) {
+            $tokenId = substr($bearer, 0, 80);
+            $token = $this->tokens->find($tokenId);
+            if ($token) {
+                $name = (string) $token->name;
+                if (Str::startsWith($name, 'tenant:')) {
+                    $parts = collect(explode(';', $name))
+                        ->map(fn($p) => explode(':', $p, 2))
+                        ->filter(fn($kv) => count($kv) === 2)
+                        ->mapWithKeys(fn($kv) => [trim($kv[0]) => trim($kv[1])]);
 
-        // Let Passport parse and locate the token record, then read the token name
-        $tokenId = substr($bearer, 0, 80);
-        $token = $this->tokens->find($tokenId);
-        if (!$token) {
-            return $next($request);
-        }
-
-        $name = (string) $token->name;
-        // Expected format: 'tenant:{uuid};domain:{fqdn}'
-        if (Str::startsWith($name, 'tenant:')) {
-            $parts = collect(explode(';', $name))
-                ->map(fn($p) => explode(':', $p, 2))
-                ->filter(fn($kv) => count($kv) === 2)
-                ->mapWithKeys(fn($kv) => [trim($kv[0]) => trim($kv[1])]);
-
-            $tenantId = $parts->get('tenant');
-            if ($tenantId) {
-                $tenant = Tenant::find($tenantId);
-                if ($tenant) {
-                    tenancy()->initialize($tenant);
+                    $tenantId = $parts->get('tenant');
+                    if ($tenantId) {
+                        $tenant = Tenant::find($tenantId);
+                        if ($tenant) {
+                            tenancy()->initialize($tenant);
+                        }
+                    }
                 }
             }
         }
