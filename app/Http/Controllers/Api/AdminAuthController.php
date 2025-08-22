@@ -49,7 +49,7 @@ class AdminAuthController extends Controller
 
 		$currentTenant = $forcedTenant ?: tenant();
 		if (!$currentTenant && Schema::hasColumn('users', 'default_tenant_id')) {
-			$defaultTenantId = DB::table('users')->where('id', $user->id)->value('default_tenant_id');
+			$defaultTenantId = DB::table('users')->where('email', $user->email)->value('default_tenant_id');
 			if ($defaultTenantId) {
 				$currentTenant = Tenant::find($defaultTenantId);
 			}
