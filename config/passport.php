@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'guard' => 'web',
+    'guard' => 'api',
 
     /*
     |--------------------------------------------------------------------------
@@ -41,6 +41,8 @@ return [
     |
     */
 
-    'connection' => env('PASSPORT_CONNECTION'),
+    //'connection' => env('PASSPORT_CONNECTION'),
+    'connection' => env('PASSPORT_DB_CONNECTION', null),
+
 
 ];

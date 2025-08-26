@@ -5,17 +5,11 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
-use Laravel\Passport\TokenRepository;
-use League\OAuth2\Server\ResourceServer;
+use Laravel\Passport\Token;
 use Illuminate\Support\Str;
 
 class EnsureTenantDatabase
 {
-    public function __construct(
-        private TokenRepository $tokens,
-        private ResourceServer $server
-    ) {}
-
     public function handle(Request $request, Closure $next)
     {
         // If tenancy already initialized by earlier middleware, continue
@@ -38,7 +32,8 @@ class EnsureTenantDatabase
         if ($bearer) {
             $jti = $this->getJtiFromJwt($bearer);
             if ($jti) {
-                $token = $this->tokens->find($jti);
+                // Passport 12 compatible: use Token model instead of TokenRepository
+                $token = Token::find($jti);
                 if ($token) {
                     $name = (string) $token->name;
                     if (Str::startsWith($name, 'tenant:')) {
@@ -68,11 +63,13 @@ class EnsureTenantDatabase
         if (count($parts) !== 3) {
             return null;
         }
+
         [$headerB64, $payloadB64] = [$parts[0], $parts[1]];
         $payloadJson = $this->base64UrlDecode($payloadB64);
         if (!$payloadJson) {
             return null;
         }
+
         $payload = json_decode($payloadJson, true);
         return is_array($payload) ? ($payload['jti'] ?? null) : null;
     }
@@ -84,6 +81,7 @@ class EnsureTenantDatabase
         if ($pad) {
             $b64 .= str_repeat('=', 4 - $pad);
         }
+
         $decoded = base64_decode($b64, true);
         return $decoded === false ? null : $decoded;
     }

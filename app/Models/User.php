@@ -8,10 +8,24 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 
 class User extends Authenticatable
 {
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
@@ -21,16 +35,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'name',
         'email',
         'email_verified_at',
-        // 'full_name',
+        'full_name',
         'user_country_id',
         'mobile_country_id',
         'mobile_number',
         'password',
         'status',
         'last_login_at',
-        // 'cvb_id',
         'cvb_number',
         'password_hash',
         'password_created_at',
@@ -52,7 +66,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
+        'password',
         'password_hash',
+        'remember_token',
     ];
 
     /**
@@ -64,6 +80,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'password' => 'hashed',
             'password_hash' => 'hashed',
             'last_login_at' => 'datetime',
             'password_created_at' => 'datetime',
