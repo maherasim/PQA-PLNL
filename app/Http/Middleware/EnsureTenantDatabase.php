@@ -29,6 +29,15 @@ class EnsureTenantDatabase
 
         // 2) Fallback: resolve tenant from bearer token name convention set at login: 'tenant:{id};domain:{domain}'
         $bearer = $request->bearerToken();
+        // Also support token via query/body param when header is not available
+        if (!$bearer) {
+            $queryToken = $request->query('token') ?? $request->query('access_token') ?? $request->input('token') ?? $request->input('access_token');
+            if ($queryToken) {
+                $bearer = $queryToken;
+                // Make it available to downstream guards (Passport TokenGuard)
+                $request->headers->set('Authorization', 'Bearer ' . $bearer);
+            }
+        }
         if ($bearer) {
             $jti = $this->getJtiFromJwt($bearer);
             if ($jti) {
