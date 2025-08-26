@@ -16,9 +16,9 @@ class CreateTenantsTable extends Migration
     public function up(): void
     {
         Schema::create('tenants', function (Blueprint $table) {
-           $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
-           $table->string('domain')->nullable();
-           $table->string('db_name')->nullable();
+            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
+            $table->string('domain')->nullable();
+            $table->string('db_name')->nullable();
             $table->timestamps();
             $table->json('data')->nullable();
           
