@@ -85,7 +85,7 @@ class AdminAuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        dd( $user);
+       // dd( $user);
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
