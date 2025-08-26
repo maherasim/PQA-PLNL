@@ -21,6 +21,8 @@ class CreateTenantsTable extends Migration
             $table->string('db_name')->nullable();
             $table->timestamps();
             $table->json('data')->nullable();
+           $table->uuid('user_id')->nullable()->after('data');
+
           
 
 
