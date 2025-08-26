@@ -15,6 +15,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     protected $fillable = [
         'organization_id',
         'status',
+        'user_id',
         'domain',
         'db_address',
         'db_name',
