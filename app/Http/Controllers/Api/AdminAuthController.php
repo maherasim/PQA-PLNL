@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
+use App\Notifications\AdminPasswordResetToken;
 
 class AdminAuthController extends Controller
 {
@@ -286,4 +289,88 @@ class AdminAuthController extends Controller
             }
         }
 	}
+
+    public function forgotPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $data['email'])->first();
+        if (!$user) {
+            return response()->json(['message' => 'Email not found'], 404);
+        }
+
+        $token = Str::random(64);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            ['token' => hash('sha256', $token), 'created_at' => now()]
+        );
+
+        Notification::route('mail', $user->email)->notify(new AdminPasswordResetToken($token));
+
+        return response()->json(['message' => 'A reset token has been sent.']);
+    }
+
+    public function verifyResetToken(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        $hashed = hash('sha256', $data['token']);
+        $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
+
+        if (!$record) {
+            return response()->json(['valid' => false, 'reason' => 'invalid'], 200);
+        }
+
+        $expired = now()->diffInMinutes($record->created_at) > 30;
+        if ($expired) {
+            return response()->json(['valid' => false, 'reason' => 'expired'], 200);
+        }
+
+        return response()->json(['valid' => true]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $hashed = hash('sha256', $data['token']);
+        $record = DB::table('password_reset_tokens')->where('token', $hashed)->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Invalid or expired token'], 422);
+        }
+
+        if (now()->diffInMinutes($record->created_at) > 30) {
+            return response()->json(['message' => 'Invalid or expired token'], 422);
+        }
+
+        $user = User::where('email', $record->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Invalid token'], 422);
+        }
+
+        if (Schema::hasColumn('users', 'password_hash')) {
+            $user->password_hash = Hash::make($data['password']);
+        } else {
+            $user->password = Hash::make($data['password']);
+        }
+        if (Schema::hasColumn('users', 'password_last_changed')) {
+            $user->password_last_changed = now();
+        }
+        if (Schema::hasColumn('users', 'password_change_required')) {
+            $user->password_change_required = false;
+        }
+        $user->save();
+
+        DB::table('password_reset_tokens')->where('email', $record->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully']);
+    }
 }

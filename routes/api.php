@@ -12,6 +12,11 @@ Route::middleware(['ensure.tenant.by.token'])->group(function () {
     // Admin auth (central)
 
     Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('login');
+    // Central admin password reset flow (no auth)
+    Route::post('/admin/forgot-password', [AdminAuthController::class, 'forgotPassword'])->name('api.admin.forgot');
+    Route::get('/admin/password/reset/verify', [AdminAuthController::class, 'verifyResetToken'])->name('api.admin.verify');
+    Route::post('/admin/reset-password', [AdminAuthController::class, 'resetPassword'])->name('api.admin.reset');
+
     Route::middleware('auth:api')->group(function () {
         Route::get('/admin/me', [AdminAuthController::class, 'me'])->name('api.admin.me');
         Route::get('/admin/tenant', [AdminAuthController::class, 'tenantFromToken'])->name('api.admin.tenant');
