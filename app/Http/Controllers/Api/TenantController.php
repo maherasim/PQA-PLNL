@@ -73,6 +73,7 @@ public function store(Request $request)
     $tenant = Tenant::create([
         'domain' => $fullDomain, // store full domain
         'db_name' => $databaseName,
+        'user_id' => null, // set after user creation below
     ]);
 
     unset($tenant->data);
@@ -95,14 +96,19 @@ public function store(Request $request)
     // Create or ensure the central user exists using the provided credentials
     $fullName = $validated['full_name'] ?? $validated['name'];
 
-            
-            
-            
-        $centralUser = User::create([
-            'name' => $fullName,
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']), 
-        ]);
+    $centralUser = User::create([
+        'name' => $fullName,
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']), 
+    ]);
+
+    // Link tenant to this user as owner
+    DB::table('tenants')->where('id', $tenant->id)->update([
+        'user_id' => $centralUser->id,
+        'updated_at' => now(),
+    ]);
+    // Refresh model instance
+    $tenant->user_id = $centralUser->id;
 
     // Set default tenant for this user if column exists
     if (Schema::hasColumn('users', 'default_tenant_id')) {
@@ -111,8 +117,7 @@ public function store(Request $request)
             'updated_at' => now(),
         ]);
     }
-    
-// dd($centralUser);
+
     // Build tenant base URL
     $baseUrl = $this->makeTenantBaseUrl($subdomain);
 

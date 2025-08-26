@@ -85,7 +85,6 @@ class AdminAuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-       // dd( $user);
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -130,6 +129,11 @@ class AdminAuthController extends Controller
             $resolvedTenant = \App\Models\Tenant::find($user->default_tenant_id);
             $resolvedVia = $resolvedTenant ? 'user_default' : $resolvedVia;
         }
+        // Fallback #2: resolve by tenant.user_id
+        if (!$resolvedTenant) {
+            $resolvedTenant = \App\Models\Tenant::where('user_id', $user->id)->first();
+            $resolvedVia = $resolvedTenant ? 'tenant_user_id' : $resolvedVia;
+        }
 
         // Compose response
         return response()->json([
@@ -142,6 +146,7 @@ class AdminAuthController extends Controller
                 'id' => $resolvedTenant->id,
                 'domain' => $resolvedTenant->domain,
                 'db_name' => $resolvedTenant->db_name,
+                'domains' => $resolvedTenant->domains()->pluck('domain'),
             ] : null,
             'token' => $tokenInfo,
             'resolved_via' => $resolvedVia,
