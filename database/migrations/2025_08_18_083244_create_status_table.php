@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('role_name', 50);
-            $table->text('description')->nullable();
-            $table->text('key_responsibilities')->nullable();
+        Schema::table('status', function (Blueprint $table) {
+            //
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::table('status', function (Blueprint $table) {
+            //
+        });
     }
 };

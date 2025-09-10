@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('status', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('status_name', 50);
+            $table->string('role_name', 50);
+            $table->text('description')->nullable();
+            $table->text('key_responsibilities')->nullable();
+            $table->timestampsTz(0);
         });
     }
 
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('status');
+        Schema::dropIfExists('roles');
     }
 };

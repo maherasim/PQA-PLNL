@@ -7,32 +7,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        if (Schema::hasTable('user_organization_role_mapping')) {
-            return;
-        }
-
         Schema::create('user_organization_role_mapping', function (Blueprint $table) {
             $table->uuid('organization_id');
             $table->uuid('user_id');
             $table->uuid('role_id');
             $table->uuid('status');
-            $table->timestampTz('start_date')->useCurrent();
+            $table->timestampTz('start_date')->default(DB::raw('now()'));
             $table->timestampTz('end_date')->nullable();
-            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('created_at')->default(DB::raw('now()'));
             $table->timestampTz('granted_at')->nullable();
             $table->timestampTz('updated_at')->nullable();
             $table->uuid('created_by');
             $table->uuid('granted_by')->nullable();
             $table->uuid('updated_by')->nullable();
+
             $table->primary(['organization_id', 'user_id', 'role_id']);
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('user_organization_role_mapping');
     }
 };
-

@@ -12,11 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('uuid_generate_v4()'));
+            $table->id();
             $table->string('name', 100)->nullable(); // limit to avoid default large varchar
             $table->string('email', 150)->unique();
+            $table->string('cvb_id')->nullable()->unique()->after('email');
+
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password', 255);
+            $table->uuid('default_tenant_id')->nullable()->after('email_verified_at'); // ✅ added here
+            $table->index('default_tenant_id'); // ✅ index for lookups
+
+            $table->string('password');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
@@ -30,7 +35,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id', 255)->primary();
-            $table->uuid('user_id')->nullable()->index();
+            $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');

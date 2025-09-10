@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('oauth_clients', function (Blueprint $table) {
-            
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
-
+            $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('name');
             $table->string('secret', 100)->nullable();
